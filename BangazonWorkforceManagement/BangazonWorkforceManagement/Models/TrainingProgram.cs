@@ -13,7 +13,7 @@ namespace BangazonWorkforceManagement.Models
 
         [Required]
         [StringLength(50, MinimumLength = 2)]
-        public string ProgramName { get; set; }
+        public string Name { get; set; }
 
         [Required]
         public DateTime StartDate { get; set; }
