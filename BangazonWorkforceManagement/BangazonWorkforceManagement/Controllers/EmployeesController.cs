@@ -84,7 +84,13 @@ namespace BangazonWorkforceManagement.Controllers
         public ActionResult Details(int id)
         {
             var employee = GetEmployeeById(id);
-            return View(employee);
+            var computer = GetAssignedComputerByEmployeeId(id);
+            var viewModel = new EmployeeDetailsViewModel()
+            {
+                Employee = employee,
+                Computer = computer
+            };
+            return View(viewModel);
         }
 
         // GET: Employees/Create
@@ -123,64 +129,85 @@ namespace BangazonWorkforceManagement.Controllers
             }
         }
 
-        //// GET: Employee/Edit/5
-        //public ActionResult Edit(int id)
-        //{
-        //    var viewModel = new EmployeeEditViewModel()
-        //    {
-        //        Employee = GetById(id),
-        //        Cohorts = GetAllCohorts()
-        //    };
+        // GET: Employee/Edit/5
+        public ActionResult Edit(int id)
+        {
+            //blows up if employee does not already have computer
+            var viewModel = new EmployeeEditViewModel()
+            {
+                Employee = GetEmployeeById(id),
+                SelectedComputerId = GetAssignedComputerByEmployeeId(id).Id,
+                Departments = GetAllDepartments(),
+                Computers = GetAvailableComputersByEmployeeId(id)
+            };
 
-        //    return View(viewModel);
-        //}
+            //BUG : when this runs, viewModel info gets properly populated (see next comment)
+            return View(viewModel);
+        }
 
         // POST: Employee/Edit/5
-        //[HttpPost]
-        //[ValidateAntiForgeryToken]
-        //public ActionResult Edit(int id, EmployeeEditViewModel viewModel)
-        //{
-        //    Employee updatedEmployee = viewModel.Employee;
-        //    try
-        //    {
-        //        using (SqlConnection conn = Connection)
-        //        {
-        //            conn.Open();
-        //            using (SqlCommand cmd = conn.CreateCommand())
-        //            {
-        //                cmd.CommandText = @"
-        //        UPDATE Employee 
-        //        SET
-        //        FirstName = @firstName,
-        //        LastName = @lastName,
-        //        SlackHandle = @slackHandle,
-        //        CohortId = @cohortId
-        //        WHERE Id = @id;";
-        //                cmd.Parameters.Add(new SqlParameter("@id", id));
-        //                cmd.Parameters.Add(new SqlParameter("@firstName", updatedEmployee.FirstName));
-        //                cmd.Parameters.Add(new SqlParameter("@lastName", updatedEmployee.LastName));
-        //                cmd.Parameters.Add(new SqlParameter("@slackHandle", updatedEmployee.SlackHandle));
-        //                cmd.Parameters.Add(new SqlParameter("@cohortId", updatedEmployee.CohortId));
-
-        //                cmd.ExecuteNonQuery();
-
-        //            }
-        //        }
-        //        return RedirectToAction(nameof(Index));
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Edit(int id, EmployeeEditViewModel model)
+        {
+            //BUG: but here, much of the info is missing (ie, EmployeeId)
 
 
-        //    }
-        //    catch
-        //    {
-        //        viewModel = new EmployeeEditViewModel()
-        //        {
-        //            Employee = viewModel.Employee,
-        //            Cohorts = GetAllCohorts()
-        //        };
+            Employee updatedEmployee = model.Employee;
+          
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"
+                    UPDATE ComputerEmployee 
+                    SET 
+                    ComputerId = ComputerId,
+                    EmployeeId = @id,
+                    AssignDate = AssignDate,
+                    UnassignDate = GetDate()
+                    WHERE EmployeeId = @id;
+                
+                    UPDATE Employee 
+                    SET
+                    FirstName = @firstName,
+                    LastName = @lastName,
+                    DepartmentId = @departmentId,
+                    IsSupervisor = @isSupervisor
+                    WHERE Id = @id;";
 
-        //        return View(viewModel);
-        //    }
-        //}
+                    cmd.Parameters.Add(new SqlParameter("@firstName", updatedEmployee.FirstName));
+                    cmd.Parameters.Add(new SqlParameter("@lastName", updatedEmployee.LastName));
+                    cmd.Parameters.Add(new SqlParameter("@departmentId", updatedEmployee.DepartmentId));
+                    cmd.Parameters.Add(new SqlParameter("@isSupervisor", updatedEmployee.IsSupervisor));
+                    cmd.Parameters.Add(new SqlParameter("@id", id));
+                    cmd.ExecuteNonQuery();
+
+                    cmd.CommandText = @"
+                    INSERT INTO ComputerEmployee (ComputerId, EmployeeId, AssignDate)
+                    VALUES (@computerId, @employeeId, GetDate());
+                    ";
+                    cmd.Parameters.Add(new SqlParameter("@computerId", model.SelectedComputerId));
+                    cmd.Parameters.Add(new SqlParameter("@employeeId", id));
+                    cmd.ExecuteNonQuery();
+                }
+            }
+            return RedirectToAction(nameof(Index));
+        
+
+           
+                model = new EmployeeEditViewModel()
+                {
+                    Employee = model.Employee,
+                    Computer = model.Employee.Computer,
+                    Departments = GetAllDepartments(),
+                    Computers = GetAvailableComputersByEmployeeId(id)
+                };
+
+                return View(model);
+            
+        }
 
        
         //Helper Methods
@@ -192,31 +219,36 @@ namespace BangazonWorkforceManagement.Controllers
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
                     cmd.CommandText = @"
-               SELECT e.Id,
-                e.FirstName,
-                e.LastName,
-                e.DepartmentId,
-                e.IsSupervisor,
-               
-                d.Name AS DepartmentName      			
-            FROM Employee e LEFT JOIN Department d ON d.Id = e.DepartmentId           
-            WHERE e.Id = @id";
-                    cmd.Parameters.Add(new SqlParameter("@id", id));
+                       SELECT  
+                        e.Id,
+                        e.FirstName,
+                        e.LastName,
+                        e.DepartmentId,
+                        e.IsSupervisor,
+                        d.Name AS DepartmentName
+                        FROM Employee e LEFT JOIN Department d ON d.Id = e.DepartmentId
+                        WHERE e.Id = @employeeId";
+                    cmd.Parameters.Add(new SqlParameter("@employeeId", id));
                     SqlDataReader reader = cmd.ExecuteReader();
 
                     Employee employee = new Employee();
-                    if (reader.Read())
+                    
+                    while (reader.Read())
                     {
-                        employee = new Employee
+                        employee = new Employee()
                         {
-                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
+
+                            Id = id,
                             FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
                             LastName = reader.GetString(reader.GetOrdinal("LastName")),
                             DepartmentId = reader.GetInt32(reader.GetOrdinal("DepartmentId")),
+                            Department = new Department()
+                            {
+                                Id = reader.GetInt32(reader.GetOrdinal("DepartmentId")),
+                                Name = reader.GetString(reader.GetOrdinal("DepartmentName"))
+                            },
                             IsSupervisor = reader.GetBoolean(reader.GetOrdinal("IsSuperVisor"))
-                            
                         };
-
 
                     }
 
@@ -226,6 +258,46 @@ namespace BangazonWorkforceManagement.Controllers
                 }
             }
         }
+
+        private Computer GetAssignedComputerByEmployeeId(int id)
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    
+                    cmd.CommandText = @"SELECT ce.Id, ce.ComputerId, ce.EmployeeId, ce.AssignDate,
+                                        c.Make, c.Manufacturer 
+                                        FROM ComputerEmployee ce LEFT JOIN Computer c ON c.Id = ce.ComputerId
+                                        WHERE ce.EmployeeId = @id AND ce.UnassignDate IS NULL
+                                        ";
+                    cmd.Parameters.Add(new SqlParameter("@id", id));
+                    var reader = cmd.ExecuteReader();
+
+                    Computer computer = new Computer();
+                    if (reader.Read())
+                    {
+                        if (!reader.IsDBNull(reader.GetOrdinal("ComputerId")))
+                        {
+                            computer = new Computer()
+                            {
+
+                                Id = reader.GetInt32(reader.GetOrdinal("ComputerId")),
+                                Manufacturer = reader.GetString(reader.GetOrdinal("Manufacturer")),
+                                Make = reader.GetString(reader.GetOrdinal("Make"))
+
+                            };
+
+                        }
+                    }
+                    reader.Close();
+
+                    return computer;
+                }
+            }
+        }
+
         private List<Department> GetAllDepartments()
         {
             using (SqlConnection conn = Connection)
@@ -252,6 +324,42 @@ namespace BangazonWorkforceManagement.Controllers
                     reader.Close();
 
                     return departments;
+                }
+            }
+        }
+
+        private List<Computer> GetAvailableComputersByEmployeeId(int id)
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    //write SQL query to get only computers where count of employeeId in ComputerEmployee table is 0
+                    cmd.CommandText = @"SELECT c.Id, c.Make, c.Manufacturer 
+                                        FROM Computer c LEFT JOIN ComputerEmployee ce ON ce.ComputerId = c.Id
+                                        GROUP BY c.Id, c.Make, c.Manufacturer, ce.EmployeeId
+                                        HAVING COUNT(ce.EmployeeId) = 0 OR ce.EmployeeId = @id;
+                                        ";
+                    cmd.Parameters.Add(new SqlParameter("@id", id));
+                    var reader = cmd.ExecuteReader();
+
+                    var computers = new List<Computer>();
+                    while (reader.Read())
+                    {
+                        computers.Add(
+                                new Computer()
+                                {
+                                    Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                                    Make = reader.GetString(reader.GetOrdinal("Make")),
+                                    Manufacturer = reader.GetString(reader.GetOrdinal("Manufacturer"))
+                                }
+                            );
+                    }
+
+                    reader.Close();
+
+                    return computers;
                 }
             }
         }
