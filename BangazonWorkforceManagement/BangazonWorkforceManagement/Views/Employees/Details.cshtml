@@ -58,7 +58,18 @@
         <dd class="col-sm-10">
             @Html.DisplayFor(model => model.Computer.Make)
         </dd>
-
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.TrainingPrograms)
+        </dt>
+        <div>
+            
+            @foreach (var item in Model.TrainingPrograms)
+            {
+                <dd class="col-sm-10">
+                    <span>@item.Name</span>
+                </dd>
+            }
+        </div>
     </dl>
 </div>
 <div>

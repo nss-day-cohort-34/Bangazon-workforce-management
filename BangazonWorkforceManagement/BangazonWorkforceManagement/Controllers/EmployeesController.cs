@@ -85,13 +85,17 @@ namespace BangazonWorkforceManagement.Controllers
         {
             var employee = GetEmployeeById(id);
             var computer = GetAssignedComputerByEmployeeId(id);
+            var trainingPrograms = GetTrainingProgramsByEmployeeId(id);
             var viewModel = new EmployeeDetailsViewModel()
             {
                 Employee = employee,
-                Computer = computer
+                Computer = computer,
+                TrainingPrograms = trainingPrograms
             };
             return View(viewModel);
         }
+
+       
 
         // GET: Employees/Create
         public ActionResult Create()
@@ -152,15 +156,16 @@ namespace BangazonWorkforceManagement.Controllers
         {
             //BUG: but here, much of the info is missing (ie, EmployeeId)
 
-
-            Employee updatedEmployee = model.Employee;
-          
-            using (SqlConnection conn = Connection)
+            try
             {
-                conn.Open();
-                using (SqlCommand cmd = conn.CreateCommand())
+              Employee updatedEmployee = model.Employee;
+
+              using (SqlConnection conn = Connection)
                 {
-                    cmd.CommandText = @"
+                    conn.Open();
+                    using (SqlCommand cmd = conn.CreateCommand())
+                    {
+                        cmd.CommandText = @"
                     UPDATE ComputerEmployee 
                     SET 
                     ComputerId = ComputerId,
@@ -177,36 +182,39 @@ namespace BangazonWorkforceManagement.Controllers
                     IsSupervisor = @isSupervisor
                     WHERE Id = @id;";
 
-                    cmd.Parameters.Add(new SqlParameter("@firstName", updatedEmployee.FirstName));
-                    cmd.Parameters.Add(new SqlParameter("@lastName", updatedEmployee.LastName));
-                    cmd.Parameters.Add(new SqlParameter("@departmentId", updatedEmployee.DepartmentId));
-                    cmd.Parameters.Add(new SqlParameter("@isSupervisor", updatedEmployee.IsSupervisor));
-                    cmd.Parameters.Add(new SqlParameter("@id", id));
-                    cmd.ExecuteNonQuery();
+                        cmd.Parameters.Add(new SqlParameter("@firstName", updatedEmployee.FirstName));
+                        cmd.Parameters.Add(new SqlParameter("@lastName", updatedEmployee.LastName));
+                        cmd.Parameters.Add(new SqlParameter("@departmentId", updatedEmployee.DepartmentId));
+                        cmd.Parameters.Add(new SqlParameter("@isSupervisor", updatedEmployee.IsSupervisor));
+                        cmd.Parameters.Add(new SqlParameter("@id", id));
+                        cmd.ExecuteNonQuery();
 
-                    cmd.CommandText = @"
+                        cmd.CommandText = @"
                     INSERT INTO ComputerEmployee (ComputerId, EmployeeId, AssignDate)
                     VALUES (@computerId, @employeeId, GetDate());
                     ";
-                    cmd.Parameters.Add(new SqlParameter("@computerId", model.SelectedComputerId));
-                    cmd.Parameters.Add(new SqlParameter("@employeeId", id));
-                    cmd.ExecuteNonQuery();
+                        cmd.Parameters.Add(new SqlParameter("@computerId", model.SelectedComputerId));
+                        cmd.Parameters.Add(new SqlParameter("@employeeId", id));
+                        cmd.ExecuteNonQuery();
+                    }
                 }
-            }
-            return RedirectToAction(nameof(Index));
-        
+                return RedirectToAction(nameof(Index));
 
-           
+            }
+            catch
+            {
+
                 model = new EmployeeEditViewModel()
                 {
                     Employee = model.Employee,
                     Computer = model.Employee.Computer,
                     Departments = GetAllDepartments(),
-                    Computers = GetAvailableComputersByEmployeeId(id)
+                    Computers = GetAvailableComputersByEmployeeId(id),
                 };
 
                 return View(model);
-            
+
+            }
         }
 
        
@@ -255,6 +263,44 @@ namespace BangazonWorkforceManagement.Controllers
                     reader.Close();
 
                     return employee;
+                }
+            }
+        }
+
+        private List<TrainingProgram> GetTrainingProgramsByEmployeeId(int id)
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"
+                                     SELECT tp.Id, tp.Name, tp.StartDate, tp.EndDate
+                                    FROM TrainingProgram tp LEFT JOIN EmployeeTraining et ON et.TrainingProgramId = tp.Id
+                                    GROUP BY tp.Id, tp.Name, tp.StartDate, tp.EndDate, et.EmployeeId
+                                    HAVING et.EmployeeId = @id
+                                    ";
+                    cmd.Parameters.Add(new SqlParameter("@id", id));
+                    var reader = cmd.ExecuteReader();
+
+                    var trainingPrograms = new List<TrainingProgram>();
+                    while (reader.Read())
+                    {
+                        if (!reader.IsDBNull(reader.GetOrdinal("Id")))
+                            trainingPrograms.Add(
+                                new TrainingProgram()
+                                {
+                                    Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                                    Name = reader.GetString(reader.GetOrdinal("Name")),
+                                    StartDate = reader.GetDateTime(reader.GetOrdinal("StartDate")),
+                                    EndDate = reader.GetDateTime(reader.GetOrdinal("EndDate"))
+                                }
+                            );
+                    }
+
+                    reader.Close();
+
+                    return trainingPrograms;
                 }
             }
         }
