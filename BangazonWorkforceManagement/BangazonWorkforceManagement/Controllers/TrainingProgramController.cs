@@ -109,18 +109,37 @@ namespace BangazonWorkforceManagement.Controllers
         // GET: TrainingProgram/Edit/5
         public ActionResult Edit(int id)
         {
-            return View();
+            var trainingProgram = GetTrainingProgramById(id);
+            return View(trainingProgram);
         }
 
         // POST: TrainingProgram/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
+        public ActionResult Edit(int id, TrainingProgram trainingProgram)
         {
             try
             {
-                // TODO: Add update logic here
+                using (SqlConnection conn = Connection)
+                {
+                    conn.Open();
+                    using (SqlCommand cmd = conn.CreateCommand())
+                    {
+                        cmd.CommandText = cmd.CommandText = @"Update TrainingProgram 
+                                                              SET Name = @name, 
+                                                                   StartDate = @startDate,
+                                                                    EndDate = @endDate,
+                                                                    MaxAttendees = @maxAttendees
+                                                              WHERE id = @id";
+                        cmd.Parameters.Add(new SqlParameter("@name", trainingProgram.Name));
+                        cmd.Parameters.Add(new SqlParameter("@startDate", trainingProgram.StartDate));
+                        cmd.Parameters.Add(new SqlParameter("@endDate", trainingProgram.EndDate));
+                        cmd.Parameters.Add(new SqlParameter("@maxAttendees", trainingProgram.MaxAttendees));
+                        cmd.Parameters.Add(new SqlParameter("@id", id));
 
+                        cmd.ExecuteNonQuery();
+                    }
+                }
                 return RedirectToAction(nameof(Index));
             }
             catch
@@ -151,5 +170,45 @@ namespace BangazonWorkforceManagement.Controllers
                 return View();
             }
         }
+        private TrainingProgram GetTrainingProgramById(int id)
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"
+                               SELECT  
+                                tp.Id,
+                                tp.Name,
+                                tp.StartDate,
+                                tp.EndDate,
+                                tp.MaxAttendees
+                                FROM TrainingProgram tp
+                                WHERE tp.Id = @id";
+                    cmd.Parameters.Add(new SqlParameter("@id", id));
+                    SqlDataReader reader = cmd.ExecuteReader();
+                    TrainingProgram trainingProgram = new TrainingProgram();
+                    while (reader.Read())
+                    {
+                        trainingProgram = new TrainingProgram()
+                        {
+                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                            Name = reader.GetString(reader.GetOrdinal("Name")),
+                            StartDate = reader.GetDateTime(reader.GetOrdinal("StartDate")),
+                            EndDate = reader.GetDateTime(reader.GetOrdinal("EndDate")),
+                            MaxAttendees = reader.GetInt32(reader.GetOrdinal("MaxAttendees")),
+                        };
+                    }
+                    reader.Close();
+                    return trainingProgram;
+                }
+            }
+        }
+        
+
+
+
+
     }
 }
