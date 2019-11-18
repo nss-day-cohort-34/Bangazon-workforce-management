@@ -129,9 +129,9 @@ namespace BangazonWorkforceManagement.Controllers
                     {
                         cmd.CommandText = cmd.CommandText = @"Update TrainingProgram 
                                                               SET Name = @name, 
-                                                                   StartDate = @startDate,
-                                                                    EndDate = @endDate,
-                                                                    MaxAttendees = @maxAttendees
+                                                              StartDate = @startDate,
+                                                              EndDate = @endDate,
+                                                              MaxAttendees = @maxAttendees
                                                               WHERE id = @id";
                         cmd.Parameters.Add(new SqlParameter("@name", trainingProgram.Name));
                         cmd.Parameters.Add(new SqlParameter("@startDate", trainingProgram.StartDate));
@@ -153,19 +153,33 @@ namespace BangazonWorkforceManagement.Controllers
         // GET: TrainingProgram/Delete/5
         public ActionResult Delete(int id)
         {
-            return View();
+            var trainingProgram = GetTrainingProgramById(id);
+            return View(trainingProgram);
         }
 
         // POST: TrainingProgram/Delete/5
         [HttpPost]
+        [ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection)
+        public ActionResult DeleteConfirmed(int id, TrainingProgram trainingProgram)
         {
             try
             {
-                // TODO: Add delete logic here
+                using (SqlConnection conn = Connection)
+                {
+                    conn.Open();
+                    using (SqlCommand cmd = conn.CreateCommand())
+                    {
+                        cmd.CommandText = @"DELETE FROM EmployeeTraining WHERE TrainingProgramId = @id;
+                                            DELETE FROM TrainingProgram WHERE Id = @id;";
+                        cmd.Parameters.Add(new SqlParameter("@id", id));
+
+                        cmd.ExecuteNonQuery();
+                    }
+                }
 
                 return RedirectToAction(nameof(Index));
+     
             }
             catch
             {
