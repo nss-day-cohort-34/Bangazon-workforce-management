@@ -221,18 +221,18 @@ namespace BangazonWorkforceManagement.Controllers
                     cmd.Parameters.Add(new SqlParameter("@id", id));
                     SqlDataReader reader = cmd.ExecuteReader();
 
-                    Employee employee = new Employee();
+                    Employee employee = null;
+                    //Employee employee = new Employee();
                     List<Employee> employees = new List<Employee>();
-
                     while (reader.Read())
                     {
-                        employee = new Employee()
-                        {
-                            Id = reader.GetInt32(reader.GetOrdinal("EmployeeId")),
-                            FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
-                            LastName = reader.GetString(reader.GetOrdinal("LastName")),
-                        };
-
+                            if (!reader.IsDBNull(reader.GetOrdinal("FirstName")))
+                                employee = new Employee()
+                                {
+                                    Id = reader.GetInt32(reader.GetOrdinal("EmployeeId")),
+                                    FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
+                                    LastName = reader.GetString(reader.GetOrdinal("LastName"))
+                                };
                         employees.Add(employee);
 
                     }
