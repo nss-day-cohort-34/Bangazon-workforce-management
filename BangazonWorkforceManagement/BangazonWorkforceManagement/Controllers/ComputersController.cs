@@ -227,20 +227,37 @@ namespace BangazonWorkforceManagement.Controllers
                         WHERE Id = @Id";
                     cmd.Parameters.Add(new SqlParameter("@Id", id));
                     SqlDataReader reader = cmd.ExecuteReader();
-                    
-                    Computer computer = null;
 
-                    if (reader.Read())
+                    Computer computer = null;
+                    while (reader.Read())
                     {
-                        computer = new Computer
+                       
+                        int computerId = reader.GetInt32(reader.GetOrdinal("Id"));
+
+                        if (!reader.IsDBNull(reader.GetOrdinal("DecomissionDate")))
                         {
-                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
-                            PurchaseDate = reader.GetDateTime(reader.GetOrdinal("PurchaseDate")),
-                            DecomissionDate = reader.GetDateTime(reader.GetOrdinal("DecomissionDate")),
-                            Make = reader.GetString(reader.GetOrdinal("Make")),
-                            Manufacturer = reader.GetString(reader.GetOrdinal("Manufacturer"))
-                        };
+                            Computer Computer = new Computer
+                            {
+                                Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                                PurchaseDate = reader.GetDateTime(reader.GetOrdinal("PurchaseDate")),
+                                DecomissionDate = reader.GetDateTime(reader.GetOrdinal("DecomissionDate")),
+                                Make = reader.GetString(reader.GetOrdinal("Make")),
+                                Manufacturer = reader.GetString(reader.GetOrdinal("Manufacturer"))
+                            };
+                            computer = Computer;
+                        } else
+                        {
+                            Computer Computer = new Computer
+                            {
+                                Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                                PurchaseDate = reader.GetDateTime(reader.GetOrdinal("PurchaseDate")),
+                                Make = reader.GetString(reader.GetOrdinal("Make")),
+                                Manufacturer = reader.GetString(reader.GetOrdinal("Manufacturer"))
+                            };
+                            computer = Computer;
+                        }
                     }
+
                     reader.Close();
 
                     return computer;
@@ -267,7 +284,7 @@ namespace BangazonWorkforceManagement.Controllers
                     SqlDataReader reader = cmd.ExecuteReader();
 
                     Computer computer = null;
-                    List<Computer> computers = new List<Computer>();
+                    //List<Computer> computers = new List<Computer>();
                     while (reader.Read())
                     {
                         int computerId = reader.GetInt32(reader.GetOrdinal("Id"));
@@ -281,7 +298,8 @@ namespace BangazonWorkforceManagement.Controllers
                                 Make = reader.GetString(reader.GetOrdinal("Make")),
                                 Manufacturer = reader.GetString(reader.GetOrdinal("Manufacturer")),
                             };
-                            computers.Add(Computer);
+                            computer = Computer;
+                            //computers.Add(Computer);
                         }
                         else
                         {
@@ -292,7 +310,8 @@ namespace BangazonWorkforceManagement.Controllers
                                 Make = reader.GetString(reader.GetOrdinal("Make")),
                                 Manufacturer = reader.GetString(reader.GetOrdinal("Manufacturer")),
                             };
-                            computers.Add(Computer);
+                            //computers.Add(Computer);
+                            computer = Computer;
                         }
                     }
                     reader.Close();
