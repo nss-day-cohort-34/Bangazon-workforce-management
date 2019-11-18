@@ -23,7 +23,11 @@ namespace BangazonWorkforceManagement.Models
 
         [Required]
         [DataType(DataType.Date)]
+<<<<<<< HEAD
         [DisplayName("End Date")]
+=======
+
+>>>>>>> master
         public DateTime? EndDate { get; set; }
 
         [Required]
