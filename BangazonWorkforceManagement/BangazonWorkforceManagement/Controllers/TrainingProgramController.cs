@@ -74,6 +74,7 @@ namespace BangazonWorkforceManagement.Controllers
         public ActionResult Details(int id)
         {
             var trainingProgram = GetTrainingProgramById(id);
+            trainingProgram.CurrentAttendees = GetTrainingProgramCurrentAttendeesById(id);
             return View(trainingProgram);
         }
 
@@ -194,6 +195,48 @@ namespace BangazonWorkforceManagement.Controllers
                     reader.Close();
 
                     return trainingProgram;
+                }
+            }
+        }
+
+        private List<Employee> GetTrainingProgramCurrentAttendeesById(int id)
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"   
+                    SELECT  
+                    tp.Id,
+                    tp.Name,
+                    et.EmployeeId,
+                    e.FirstName, e.LastName
+                    FROM TrainingProgram tp INNER JOIN EmployeeTraining et ON et.TrainingProgramId = tp.Id
+                    LEFT JOIN Employee e ON e.Id = et.EmployeeId
+                    WHERE tp.Id = @id";
+                    cmd.Parameters.Add(new SqlParameter("@id", id));
+                    SqlDataReader reader = cmd.ExecuteReader();
+
+                    Employee attendee = new Employee();
+                    List<Employee> currentAttendees = new List<Employee>();
+
+                    while (reader.Read())
+                    {
+                        attendee = new Employee()
+                        {
+                            Id = reader.GetInt32(reader.GetOrdinal("EmployeeId")),
+                            FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
+                            LastName = reader.GetString(reader.GetOrdinal("LastName")),
+                        };
+
+                        currentAttendees.Add(attendee);
+
+                    }
+
+                    reader.Close();
+
+                    return currentAttendees;
                 }
             }
         }
