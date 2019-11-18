@@ -20,6 +20,7 @@ namespace BangazonWorkforceManagement.Models
         [StringLength(50, MinimumLength = 2)]
         public string Manufacturer { get; set; }
 
+        [DisplayName("Computer Info")]
         public string ComputerInfo
         {
             get
