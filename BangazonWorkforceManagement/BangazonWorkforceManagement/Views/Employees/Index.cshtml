@@ -3,8 +3,10 @@
 @{
     ViewData["Title"] = "Index";
 }
+
 <style>
-    .HighlightSupervisor {
+    .HighlightSupervisor
+    {
         background-color: aquamarine;
     }
 </style>
@@ -17,7 +19,7 @@
 <table class="table">
     <thead>
         <tr>
-            
+
             <th>
                 @Html.DisplayNameFor(model => model.FirstName)
             </th>
@@ -29,7 +31,7 @@
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.IsSupervisor)
-                
+
             </th>
 
             <th></th>
@@ -38,7 +40,7 @@
     <tbody>
         @foreach (var item in Model)
         {
-            if (item.IsSupervisor == true)
+            if (item.IsSupervisor)
             {
                 <tr class="HighlightSupervisor">
 
@@ -84,7 +86,7 @@
                     </td>
                 </tr>
             }
-
+        }
         }
     </tbody>
 </table>
