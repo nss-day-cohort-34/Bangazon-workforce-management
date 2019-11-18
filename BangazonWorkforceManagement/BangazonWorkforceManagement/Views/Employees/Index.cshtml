@@ -3,6 +3,11 @@
 @{
     ViewData["Title"] = "Index";
 }
+<style>
+    .HighlightSupervisor {
+        background-color: aquamarine;
+    }
+</style>
 
 <h1>Index</h1>
 
@@ -31,27 +36,55 @@
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
-        <tr>
-           
-            <td>
-                @Html.DisplayFor(modelItem => item.FirstName)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.LastName)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Department.Name)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.IsSupervisor)  
-            </td>
-   
-            <td>
-                @Html.ActionLink("Edit", "Edit", new { id=item.Id }) |
-                @Html.ActionLink("Details", "Details", new { id=item.Id })   
-            </td>
-        </tr>
-}
+        @foreach (var item in Model)
+        {
+            if (item.IsSupervisor == true)
+            {
+                <tr class="HighlightSupervisor">
+
+                    <td>
+                        @Html.DisplayFor(modelItem => item.FirstName)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.LastName)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Department.Name)
+                    </td>
+                    <td>
+                        <span>Supervisor</span>
+                    </td>
+
+                    <td>
+                        @Html.ActionLink("Edit", "Edit", new { id = item.Id }) |
+                        @Html.ActionLink("Details", "Details", new { id = item.Id })
+                    </td>
+                </tr>
+            }
+            else
+            {
+                <tr>
+
+                    <td>
+                        @Html.DisplayFor(modelItem => item.FirstName)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.LastName)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Department.Name)
+                    </td>
+                    <td>
+                        <span>Underling</span>
+                    </td>
+
+                    <td>
+                        @Html.ActionLink("Edit", "Edit", new { id = item.Id }) |
+                        @Html.ActionLink("Details", "Details", new { id = item.Id })
+                    </td>
+                </tr>
+            }
+
+        }
     </tbody>
 </table>
