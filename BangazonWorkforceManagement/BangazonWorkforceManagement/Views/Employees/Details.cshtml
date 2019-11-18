@@ -1,11 +1,8 @@
 ﻿@model BangazonWorkforceManagement.Models.ViewModels.EmployeeDetailsViewModel
-
 @{
     ViewData["Title"] = "Details";
 }
-
 <h1>Details</h1>
-
 <div>
     <h4>Employee</h4>
     <hr />
@@ -50,18 +47,17 @@
                     <span>No computer assigned</span>
                 </dd>
             }
-            else 
+            else
             {
                 <dd class="col-sm-10">
                     @Html.DisplayFor(model => model.Computer.ComputerInfo)
                 </dd>
             }
-        }    
+        }
         <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.TrainingPrograms)
         </dt>
         <div>
-
             @foreach (var item in Model.TrainingPrograms)
             {
                 <dd class="col-sm-10">
@@ -74,6 +70,5 @@
 <div>
     @Html.ActionLink("Edit", "Edit", new { id = Model.Employee.Id }) |
     @Html.ActionLink("Assign To Training Program", "EditTraining", new { id = Model.Employee.Id }) |
-
     <a asp-action="Index">Back to List</a>
 </div>
