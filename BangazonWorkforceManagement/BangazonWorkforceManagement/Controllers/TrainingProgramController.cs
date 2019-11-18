@@ -44,7 +44,11 @@ namespace BangazonWorkforceManagement.Controllers
                                         t.EndDate,
                                         t.MaxAttendees
                                     FROM TrainingProgram t
+<<<<<<< HEAD
                                     WHERE t.StartDate > GETDATE();
+=======
+									WHERE t.StartDate > GETDATE();
+>>>>>>> master
                                     ";
                     SqlDataReader reader = cmd.ExecuteReader();
 
@@ -85,17 +89,24 @@ namespace BangazonWorkforceManagement.Controllers
         // POST: TrainingProgram/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(IFormCollection collection)
+        public async Task<ActionResult> Create(TrainingProgram trainingProgram)
         {
-            try
+            using (SqlConnection conn = Connection)
             {
-                // TODO: Add insert logic here
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"INSERT INTO TrainingProgram
+                                        (Name, StartDate, EndDate, MaxAttendees)
+                                        VALUES ( @name, @startDate, @endDate, @MaxAttendees)";
+                    cmd.Parameters.Add(new SqlParameter("@name", trainingProgram.Name));
+                    cmd.Parameters.Add(new SqlParameter("@startDate", trainingProgram.StartDate));
+                    cmd.Parameters.Add(new SqlParameter("@endDate", trainingProgram.EndDate));
+                    cmd.Parameters.Add(new SqlParameter("@maxAttendees", trainingProgram.MaxAttendees));
+                    cmd.ExecuteNonQuery();
 
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
+                    return RedirectToAction(nameof(Index));
+                }
             }
         }
 
