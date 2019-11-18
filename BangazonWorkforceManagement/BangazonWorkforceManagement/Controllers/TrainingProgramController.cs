@@ -111,6 +111,15 @@ namespace BangazonWorkforceManagement.Controllers
             }
         }
 
+        public ActionResult ViewPastDetails(int id)
+
+            {
+                var trainingProgram = GetTrainingProgramById(id);
+                trainingProgram.CurrentAttendees = GetTrainingProgramCurrentAttendeesById(id);
+                return View(trainingProgram);
+            }
+            
+
         // GET: TrainingProgram/Details/5
         public ActionResult Details(int id)
         {

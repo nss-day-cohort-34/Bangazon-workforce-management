@@ -1,0 +1,53 @@
+﻿@model BangazonWorkforceManagement.Models.TrainingProgram
+
+@{
+    ViewData["Title"] = "ViewPastDetails";
+}
+
+<h1>ViewPastDetails</h1>
+
+<div>
+    <h4>TrainingProgram</h4>
+    <hr />
+    <dl class="row">
+
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Name)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Name)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.StartDate)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.StartDate)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.EndDate)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.EndDate)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.MaxAttendees)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.MaxAttendees)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.CurrentAttendees)
+        </dt>
+        <div>
+            @foreach (var item in Model.CurrentAttendees)
+            {
+                <dd class="col-sm-10">
+                    <span>@item.FirstName @item.LastName</span>
+                </dd>
+            }
+        </div>
+    </dl>
+</div>
+<div>
+    <a asp-action="ViewPast">Back to Past Programs</a>
+</div>
