@@ -86,7 +86,8 @@ namespace BangazonWorkforceManagement.Controllers
         // GET: Computers/Details/5
         public ActionResult Details(int id)
         {
-            return View();
+            Computer computer = GetComputerById(id);
+            return View(computer);
         }
 
         // GET: Computers/Create
@@ -115,17 +116,38 @@ namespace BangazonWorkforceManagement.Controllers
         // GET: Computers/Edit/5
         public ActionResult Edit(int id)
         {
-            return View();
+            Computer computer = GetComputerById(id);
+            return View(computer);
         }
 
         // POST: Computers/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
+        public ActionResult Edit(int id, Computer computer)
         {
             try
             {
                 // TODO: Add update logic here
+                using (SqlConnection conn = Connection)
+                {
+                    conn.Open();
+                    using (SqlCommand cmd = conn.CreateCommand())
+                    {
+                        cmd.CommandText = @"UPDATE Computer
+                                                SET PurchaseDate = @PurchaseDate,
+                                                    DecomissionDate = @DecomissionDate,
+                                                    Make = @Make,
+                                                    Manufacturer = @Manufacturer
+                                                WHERE Id = @id";
+                        cmd.Parameters.Add(new SqlParameter("@PurchaseDate", computer.PurchaseDate));
+                        cmd.Parameters.Add(new SqlParameter("@DecomissionDate", computer.DecomissionDate));
+                        cmd.Parameters.Add(new SqlParameter("@id", computer.Id));
+                        cmd.Parameters.Add(new SqlParameter("@Make", computer.Make));
+                        cmd.Parameters.Add(new SqlParameter("@Manufacturer", computer.Manufacturer));
+
+                        cmd.ExecuteNonQuery();
+                    }
+                }
 
                 return RedirectToAction(nameof(Index));
             }
