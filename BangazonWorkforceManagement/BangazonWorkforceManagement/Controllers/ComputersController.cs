@@ -188,7 +188,8 @@ namespace BangazonWorkforceManagement.Controllers
                             //in this condition the ComputerId was found in the table 
                             //which means there has been a relationship
                             reader.Close();
-                            return Ok("This computer has had a previous relationship with an employee and cannot be deleted");
+                            return Ok("This computer has had a previous relationship with an employee and cannot be deleted. " +
+                                "This needs a different view");
 
                         }
                         else
@@ -226,12 +227,12 @@ namespace BangazonWorkforceManagement.Controllers
                         WHERE Id = @Id";
                     cmd.Parameters.Add(new SqlParameter("@Id", id));
                     SqlDataReader reader = cmd.ExecuteReader();
-
+                    
                     Computer computer = null;
 
                     if (reader.Read())
                     {
-                        computer= new Computer
+                        computer = new Computer
                         {
                             Id = reader.GetInt32(reader.GetOrdinal("Id")),
                             PurchaseDate = reader.GetDateTime(reader.GetOrdinal("PurchaseDate")),
