@@ -14,20 +14,20 @@ namespace BangazonWorkforceManagement.Controllers
 {
     public class TrainingProgramController : Controller
     {
-            private readonly IConfiguration _config;
+        private readonly IConfiguration _config;
 
-            public TrainingProgramController(IConfiguration config)
-            {
-                _config = config;
-            }
+        public TrainingProgramController(IConfiguration config)
+        {
+            _config = config;
+        }
 
-            public SqlConnection Connection
+        public SqlConnection Connection
+        {
+            get
             {
-                get
-                {
-                    return new SqlConnection(_config.GetConnectionString("DefaultConnection"));
-                }
+                return new SqlConnection(_config.GetConnectionString("DefaultConnection"));
             }
+        }
 
         // GET: TrainingProgram
         public ActionResult Index()
@@ -72,7 +72,8 @@ namespace BangazonWorkforceManagement.Controllers
         // GET: TrainingProgram/Details/5
         public ActionResult Details(int id)
         {
-            return View();
+            var trainingProgram = GetTrainingProgramById(id);
+            return View(trainingProgram);
         }
 
         // GET: TrainingProgram/Create
@@ -141,6 +142,51 @@ namespace BangazonWorkforceManagement.Controllers
             catch
             {
                 return View();
+            }
+        }
+
+
+
+        //Helper methods
+        private TrainingProgram GetTrainingProgramById(int id)
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"
+                               SELECT  
+                                tp.Id,
+                                tp.Name,
+                                tp.StartDate,
+                                tp.EndDate,
+                                tp.MaxAttendees
+                                FROM TrainingProgram tp
+                                WHERE tp.Id = @id";
+                    cmd.Parameters.Add(new SqlParameter("@id", id));
+                    SqlDataReader reader = cmd.ExecuteReader();
+
+                    TrainingProgram trainingProgram = new TrainingProgram();
+
+                    while (reader.Read())
+                    {
+                        trainingProgram = new TrainingProgram()
+                        {
+
+                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                            Name = reader.GetString(reader.GetOrdinal("Name")),
+                            StartDate = reader.GetDateTime(reader.GetOrdinal("StartDate")),
+                            EndDate = reader.GetDateTime(reader.GetOrdinal("EndDate")),
+                            MaxAttendees = reader.GetInt32(reader.GetOrdinal("MaxAttendees")),                  
+                        };
+
+                    }
+
+                    reader.Close();
+
+                    return trainingProgram;
+                }
             }
         }
     }
