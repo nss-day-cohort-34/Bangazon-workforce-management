@@ -20,6 +20,7 @@ namespace BangazonWorkforceManagement.Models
         [StringLength(50, MinimumLength = 2)]
         public string Manufacturer { get; set; }
 
+        [DisplayName("Computer Info")]
         public string ComputerInfo
         {
             get
@@ -31,6 +32,8 @@ namespace BangazonWorkforceManagement.Models
 
         [Required]
         public DateTime PurchaseDate { get; set; }
-        public DateTime DecommissionDate { get; set; }
+
+        [DataType(DataType.Date)]
+        public DateTime? DecomissionDate { get; set; }
     }
 }

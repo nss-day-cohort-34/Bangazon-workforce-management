@@ -131,7 +131,7 @@ namespace BangazonWorkforceManagement.Controllers
                     return RedirectToAction(nameof(Index));
                 }
             }
-        }
+        } 
 
         // GET: Employee/Edit/5
         public ActionResult Edit(int id)
@@ -217,7 +217,66 @@ namespace BangazonWorkforceManagement.Controllers
             }
         }
 
-       
+        public ActionResult EditTraining(int id)
+        {
+            var employee = GetEmployeeWithTrainingProgramsById(id);
+            var viewModel = new TrainingProgramEmployeeEditViewModel()
+            {
+                Employee = employee,
+                AllTrainingPrograms = GetAllTrainingPrograms(id),
+                SelectedTrainingProgramIds = employee.TrainingPrograms.Select(t => t.Id).ToList()
+            };
+
+            return View(viewModel);
+        }
+
+        // POST: Employee/Edit/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult EditTraining(int id, TrainingProgramEmployeeEditViewModel viewModel)
+        {
+            var updatedEmployee = viewModel.Employee;
+            try
+            {
+                using (SqlConnection conn = Connection)
+                {
+                    conn.Open();
+                    using (SqlCommand cmd = conn.CreateCommand())
+                    {
+                        cmd.CommandText = @"
+                            DELETE FROM EmployeeTraining WHERE EmployeeId = @id;";
+                        cmd.Parameters.Add(new SqlParameter("@id", id));
+                        cmd.ExecuteNonQuery();
+
+                        cmd.CommandText = @"
+                            INSERT INTO EmployeeTraining (EmployeeId, TrainingProgramId)
+                                VALUES (@employeeId, @trainingProgramId)";
+                        foreach (var trainingProgramId in viewModel.SelectedTrainingProgramIds)
+                        {
+                            cmd.Parameters.Clear();
+                            cmd.Parameters.Add(new SqlParameter("@employeeId", id));
+                            cmd.Parameters.Add(new SqlParameter("@trainingProgramId", trainingProgramId));
+                            cmd.ExecuteNonQuery();
+                        }
+                    }
+                    return RedirectToAction("Details", new { id = id });
+                }
+            }
+            catch
+            {
+                viewModel = new TrainingProgramEmployeeEditViewModel()
+                {
+                    Employee = viewModel.Employee,
+                    AllTrainingPrograms = GetAllTrainingPrograms(id)
+                };
+
+                return View(viewModel);
+            }
+        }
+
+
+
+
         //Helper Methods
         private Employee GetEmployeeById(int id)
         {
@@ -266,8 +325,62 @@ namespace BangazonWorkforceManagement.Controllers
                 }
             }
         }
+        private Employee GetEmployeeWithTrainingProgramsById(int id)
 
-        private List<TrainingProgram> GetTrainingProgramsByEmployeeId(int id)
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"
+               SELECT e.Id,
+                e.FirstName,
+                e.LastName,
+                e.DepartmentId,
+                e.IsSupervisor,
+                et.TrainingProgramId,
+                t.Name AS TrainingProgramName      			
+            FROM Employee e LEFT JOIN EmployeeTraining et ON e.Id = et.EmployeeId
+            LEFT JOIN TrainingProgram t ON t.Id = et.TrainingProgramId
+            WHERE e.Id = @id";
+                    cmd.Parameters.Add(new SqlParameter("@id", id));
+                    SqlDataReader reader = cmd.ExecuteReader();
+
+                    Employee employee = null;
+                    while (reader.Read())
+                    {
+                        if (employee == null)
+                        {
+                            Employee newEmployee = new Employee
+                            {
+                                Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                                FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
+                                LastName = reader.GetString(reader.GetOrdinal("LastName")),
+                                DepartmentId = reader.GetInt32(reader.GetOrdinal("DepartmentId")),
+                                IsSupervisor = reader.GetBoolean(reader.GetOrdinal("IsSuperVisor")),
+
+                            };
+                            employee = newEmployee;
+                        }
+                        if (!reader.IsDBNull(reader.GetOrdinal("TrainingProgramName")))
+                        {
+                            TrainingProgram newTrainingProgram = new TrainingProgram
+                            {
+                                Name = reader.GetString(reader.GetOrdinal("TrainingProgramName")),
+                                Id = reader.GetInt32(reader.GetOrdinal("TrainingProgramId"))
+                            };
+                            employee.TrainingPrograms.Add(newTrainingProgram);
+                        }
+                    }
+
+                    reader.Close();
+
+                    return employee;
+                }
+            }
+        }
+private List<TrainingProgram> GetTrainingProgramsByEmployeeId(int id)
         {
             using (SqlConnection conn = Connection)
             {
@@ -344,6 +457,7 @@ namespace BangazonWorkforceManagement.Controllers
             }
         }
 
+
         private List<Department> GetAllDepartments()
         {
             using (SqlConnection conn = Connection)
@@ -373,7 +487,48 @@ namespace BangazonWorkforceManagement.Controllers
                 }
             }
         }
+        private List<TrainingProgram> GetAllTrainingPrograms(int id)
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"SELECT t.Id, t.Name, t.StartDate, t.EndDate, t.MaxAttendees
+                                             , COUNT(et.TrainingProgramId)
+                                          FROM TrainingProgram t
+                                     LEFT JOIN EmployeeTraining et ON t.Id = et.TrainingProgramId
+									     WHERE et.EmployeeId = @id OR t.StartDate > GETDATE()
+									  GROUP BY t.Id, t.Name, t.StartDate, t.EndDate, t.MaxAttendees
+                                        HAVING t.MaxAttendees > COUNT(et.TrainingProgramId)";
+                    cmd.Parameters.Add(new SqlParameter("@id", id));
+                    var reader = cmd.ExecuteReader();
 
+                    var trainingPrograms = new List<TrainingProgram>();
+                    while (reader.Read())
+                    {
+                        int currentId = reader.GetInt32(reader.GetOrdinal("Id"));
+                        if (!trainingPrograms.Exists(t => t.Id == currentId))
+                        {
+                            trainingPrograms.Add(
+                                new TrainingProgram()
+                                {
+                                    Id = currentId,
+                                    Name = reader.GetString(reader.GetOrdinal("Name")),
+                                    StartDate = reader.GetDateTime(reader.GetOrdinal("StartDate")),
+                                    EndDate = reader.GetDateTime(reader.GetOrdinal("EndDate")),
+                                    MaxAttendees = reader.GetInt32(reader.GetOrdinal("MaxAttendees"))
+                                }
+                            );
+                        }
+                    }
+
+                    reader.Close();
+
+                    return trainingPrograms;
+                }
+            }
+        }
         private List<Computer> GetAvailableComputersByEmployeeId(int id)
         {
             using (SqlConnection conn = Connection)
