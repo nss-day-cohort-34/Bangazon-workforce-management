@@ -495,10 +495,11 @@ private List<TrainingProgram> GetTrainingProgramsByEmployeeId(int id)
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
                     cmd.CommandText = @"SELECT t.Id, t.Name, t.StartDate, t.EndDate, t.MaxAttendees
-                                             , et.EmployeeId
+                                             , et.EmployeeId, COUNT(et.EmployeeId)
                                           FROM TrainingProgram t
                                      LEFT JOIN EmployeeTraining et ON t.Id = et.TrainingProgramId
-                                         WHERE et.EmployeeId = @id OR t.StartDate > GETDATE()";
+									  GROUP BY t.Id, t.Name, t.StartDate, t.EndDate, t.MaxAttendees, et.EmployeeId
+                                        HAVING et.EmployeeId = @id OR (t.StartDate > GETDATE() AND t.MaxAttendees > COUNT(et.EmployeeId))";
                     cmd.Parameters.Add(new SqlParameter("@id", id));
                     var reader = cmd.ExecuteReader();
 
