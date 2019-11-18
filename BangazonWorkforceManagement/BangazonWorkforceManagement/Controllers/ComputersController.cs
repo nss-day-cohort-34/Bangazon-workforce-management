@@ -133,12 +133,21 @@ namespace BangazonWorkforceManagement.Controllers
                     conn.Open();
                     using (SqlCommand cmd = conn.CreateCommand())
                     {
+                      if (computer.DecomissionDate != null)
+                        {
+                           
+                        }
+                        
                         cmd.CommandText = @"UPDATE Computer
                                                 SET PurchaseDate = @PurchaseDate,
                                                     DecomissionDate = @DecomissionDate,
                                                     Make = @Make,
                                                     Manufacturer = @Manufacturer
                                                 WHERE Id = @id";
+
+
+
+
                         cmd.Parameters.Add(new SqlParameter("@PurchaseDate", computer.PurchaseDate));
                         cmd.Parameters.Add(new SqlParameter("@DecomissionDate", computer.DecomissionDate));
                         cmd.Parameters.Add(new SqlParameter("@id", computer.Id));
