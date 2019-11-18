@@ -41,34 +41,49 @@ namespace BangazonWorkforceManagement.Controllers
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
                     cmd.CommandText = @"
-             		SELECT d.Name, Count(*)  employee_count, d.Budget
+             		SELECT d.Name, d.Budget, d.Id, e.Id AS EmployeeId
                     FROM Department d
                     LEFT JOIN Employee e ON e.DepartmentId = d.Id
-                    GROUP BY d.Name, d.Budget
                                         ";
                     SqlDataReader reader = cmd.ExecuteReader();
 
                     List<Department> departments = new List<Department>();
+                    Department currentDepartment = null;
                     while (reader.Read())
                     {
-                        Department department = new Department
-                        {
-                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
-                            Name = reader.GetString(reader.GetOrdinal("FirstName")),
-                            Budget = reader.GetInt32(reader.GetOrdinal("DepartmentId")),
-                            EmployeeCount = new Employee()
-                            {
-                                Id = reader.GetInt32(reader.GetOrdinal("DepartmentId")),
-                                Name = reader.GetString(reader.GetOrdinal("DepartmentName"))
-                            }
-                        };
+                        int departmentId = reader.GetInt32(reader.GetOrdinal("Id"));
+                        
 
-                        employees.Add(employee);
+                        if (!departments.Exists(d => d.Id == departmentId))
+                            {
+
+
+                            Department department = new Department
+                            {
+                                Id = departmentId,
+                                Name = reader.GetString(reader.GetOrdinal("Name")),
+                                Budget = reader.GetInt32(reader.GetOrdinal("Budget")),
+                            };
+
+                            currentDepartment = department;
+                            departments.Add(currentDepartment);
+
+                        }
+                        
+                        if (!reader.IsDBNull(reader.GetOrdinal("EmployeeId")))
+                        {
+                            Employee employee = new Employee
+                            {
+                                Id = reader.GetInt32(reader.GetOrdinal("EmployeeId"))
+                            };
+                            currentDepartment.Employees.Add(employee);
+                        }
+                        
                     }
 
                     reader.Close();
 
-                    return View(employees);
+                    return View(departments);
                 }
             }
         }
