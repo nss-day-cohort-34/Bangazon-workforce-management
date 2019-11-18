@@ -44,11 +44,7 @@ namespace BangazonWorkforceManagement.Controllers
                                         t.EndDate,
                                         t.MaxAttendees
                                     FROM TrainingProgram t
-<<<<<<< HEAD
-                                    WHERE t.StartDate > GETDATE();
-=======
 									WHERE t.StartDate > GETDATE();
->>>>>>> master
                                     ";
                     SqlDataReader reader = cmd.ExecuteReader();
 

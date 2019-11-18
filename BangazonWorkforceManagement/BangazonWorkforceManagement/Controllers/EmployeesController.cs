@@ -131,7 +131,7 @@ namespace BangazonWorkforceManagement.Controllers
                     return RedirectToAction(nameof(Index));
                 }
             }
-        }
+        } 
 
         // GET: Employee/Edit/5
         public ActionResult Edit(int id)
@@ -259,9 +259,7 @@ namespace BangazonWorkforceManagement.Controllers
                             cmd.ExecuteNonQuery();
                         }
                     }
-                    return RedirectToAction(nameof(Details));
-
-
+                    return RedirectToAction("Details", new { id = id });
                 }
             }
             catch
