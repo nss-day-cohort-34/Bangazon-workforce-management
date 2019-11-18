@@ -195,7 +195,7 @@ namespace BangazonWorkforceManagement.Controllers
             return View(viewModel);
         }
 
-        // POST: Student/Edit/5
+        // POST: Employee/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult EditTraining(int id, TrainingProgramEmployeeEditViewModel viewModel)

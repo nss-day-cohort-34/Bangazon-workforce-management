@@ -15,19 +15,17 @@
                 <label asp-for="SelectedTrainingProgramIds" class="control-label"></label>
                 <select multiple asp-for="SelectedTrainingProgramIds" asp-items="@Model.TrainingProgramOptions"></select>
                 <span asp-validation-for="SelectedTrainingProgramIds" class="text-danger"></span>
-
             </div>
 
             <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" asp-action="Details" asp-route-id=@Model.Employee.Id/>
+                <input type="submit" value="Save" class="btn btn-primary"/>
             </div>
         </form>
     </div>
 </div>
 
 <div>
-
-    @Html.ActionLink("Back to Details", "Details", new { id = Model.Employee.Id })
+    <a asp-action="Details" asp-route-id=@Model.Employee.Id>Back to Details</a>
 </div>
 
 @section Scripts {
