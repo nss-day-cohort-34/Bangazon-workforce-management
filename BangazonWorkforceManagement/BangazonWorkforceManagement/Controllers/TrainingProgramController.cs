@@ -172,13 +172,11 @@ namespace BangazonWorkforceManagement.Controllers
                 return View();
             }
         }
-<<<<<<< HEAD
 
 
 
         //Helper methods
-=======
->>>>>>> master
+
         private TrainingProgram GetTrainingProgramById(int id)
         {
             using (SqlConnection conn = Connection)
@@ -197,44 +195,23 @@ namespace BangazonWorkforceManagement.Controllers
                                 WHERE tp.Id = @id";
                     cmd.Parameters.Add(new SqlParameter("@id", id));
                     SqlDataReader reader = cmd.ExecuteReader();
-<<<<<<< HEAD
-
                     TrainingProgram trainingProgram = new TrainingProgram();
-
-=======
-                    TrainingProgram trainingProgram = new TrainingProgram();
->>>>>>> master
-                    while (reader.Read())
-                    {
+                    while(reader.Read())
+                    { 
                         trainingProgram = new TrainingProgram()
-                        {
-<<<<<<< HEAD
-
-=======
->>>>>>> master
+                        { 
                             Id = reader.GetInt32(reader.GetOrdinal("Id")),
                             Name = reader.GetString(reader.GetOrdinal("Name")),
                             StartDate = reader.GetDateTime(reader.GetOrdinal("StartDate")),
                             EndDate = reader.GetDateTime(reader.GetOrdinal("EndDate")),
-<<<<<<< HEAD
-                            MaxAttendees = reader.GetInt32(reader.GetOrdinal("MaxAttendees")),                  
-                        };
-
-                    }
-
-                    reader.Close();
-
-=======
                             MaxAttendees = reader.GetInt32(reader.GetOrdinal("MaxAttendees")),
                         };
                     }
                     reader.Close();
->>>>>>> master
                     return trainingProgram;
                 }
             }
         }
-<<<<<<< HEAD
 
         private List<Employee> GetTrainingProgramCurrentAttendeesById(int id)
         {
@@ -277,12 +254,5 @@ namespace BangazonWorkforceManagement.Controllers
                 }
             }
         }
-=======
-        
-
-
-
-
->>>>>>> master
     }
 }
