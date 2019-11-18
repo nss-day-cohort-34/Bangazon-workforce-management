@@ -171,6 +171,8 @@ namespace BangazonWorkforceManagement.Controllers
         {
             try
             {
+                
+                
                 // TODO: Add delete logic here
                 using(SqlConnection conn = Connection)
                 {
