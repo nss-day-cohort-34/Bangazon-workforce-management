@@ -30,7 +30,7 @@ namespace BangazonWorkforceManagement.Models
         [DisplayName("Max Attendees")]
         public int MaxAttendees { get; set; }
 
-        [DisplayName("Current Attendees")]
+        [DisplayName("Attendees")]
         public List<Employee> CurrentAttendees { get; set; } = new List<Employee>();
 
     }
