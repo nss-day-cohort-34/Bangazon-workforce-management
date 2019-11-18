@@ -160,7 +160,7 @@ namespace BangazonWorkforceManagement.Controllers
         // GET: Computers/Delete/5
         public ActionResult Delete(int id)
         {
-            Computer computer = GetComputerById(id);
+            Computer computer = GetComputerByIdForDelete(id);
             return View(computer);
         }
 
@@ -171,19 +171,33 @@ namespace BangazonWorkforceManagement.Controllers
         {
             try
             {
-                
-                
                 // TODO: Add delete logic here
-                using(SqlConnection conn = Connection)
+                using (SqlConnection conn = Connection)
                 {
                     conn.Open();
                     using (SqlCommand cmd = conn.CreateCommand())
                     {
-
-                        cmd.CommandText = @"DELETE FROM ComputerEmployee WHERE ComputerId = @Id
-                                            DELETE FROM Computer WHERE Id = @Id";
+                        cmd.CommandText = @"SELECT ComputerId 
+                                            FROM ComputerEmployee
+                                            WHERE ComputerId = @Id;";
                         cmd.Parameters.Add(new SqlParameter("@Id", id));
-                        cmd.ExecuteNonQuery();
+                        SqlDataReader reader = cmd.ExecuteReader();
+
+                        if (reader.Read())
+                        {
+                            //in this condition the ComputerId was found in the table 
+                            //which means there has been a relationship
+                            reader.Close();
+                            return Ok("This computer has had a previous relationship with an employee and cannot be deleted");
+
+                        }
+                        else
+                        {
+                            //there has not been a relationship and delete can proceed
+                            reader.Close();
+                            cmd.CommandText = @"DELETE FROM Computer WHERE Id = @Id";
+                            cmd.ExecuteNonQuery();
+                        }
                     }
                 }
 
@@ -225,6 +239,60 @@ namespace BangazonWorkforceManagement.Controllers
                             Make = reader.GetString(reader.GetOrdinal("Make")),
                             Manufacturer = reader.GetString(reader.GetOrdinal("Manufacturer"))
                         };
+                    }
+                    reader.Close();
+
+                    return computer;
+                }
+            }
+        }
+
+        private Computer GetComputerByIdForDelete(int id)
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"
+                        SELECT c.Id,
+                            c.PurchaseDate,
+                            c.DecomissionDate,
+                            c.Make,
+                            c.Manufacturer
+                        FROM Computer c
+                        WHERE Id = @Id";
+                    cmd.Parameters.Add(new SqlParameter("@Id", id));
+                    SqlDataReader reader = cmd.ExecuteReader();
+
+                    Computer computer = null;
+                    List<Computer> computers = new List<Computer>();
+                    while (reader.Read())
+                    {
+                        int computerId = reader.GetInt32(reader.GetOrdinal("Id"));
+                        if (!reader.IsDBNull(reader.GetOrdinal("DecomissionDate")))
+                        {
+                            Computer Computer = new Computer
+                            {
+                                Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                                PurchaseDate = reader.GetDateTime(reader.GetOrdinal("Purchasedate")),
+                                DecomissionDate = reader.GetDateTime(reader.GetOrdinal("DecomissionDate")),
+                                Make = reader.GetString(reader.GetOrdinal("Make")),
+                                Manufacturer = reader.GetString(reader.GetOrdinal("Manufacturer")),
+                            };
+                            computers.Add(Computer);
+                        }
+                        else
+                        {
+                            Computer Computer = new Computer
+                            {
+                                Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                                PurchaseDate = reader.GetDateTime(reader.GetOrdinal("Purchasedate")),
+                                Make = reader.GetString(reader.GetOrdinal("Make")),
+                                Manufacturer = reader.GetString(reader.GetOrdinal("Manufacturer")),
+                            };
+                            computers.Add(Computer);
+                        }
                     }
                     reader.Close();
 
