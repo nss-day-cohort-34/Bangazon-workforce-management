@@ -21,6 +21,7 @@ namespace BangazonWorkforceManagement.Models
 
         [Required]
         [DataType(DataType.Date)]
+
         public DateTime? EndDate { get; set; }
 
         [Required]
