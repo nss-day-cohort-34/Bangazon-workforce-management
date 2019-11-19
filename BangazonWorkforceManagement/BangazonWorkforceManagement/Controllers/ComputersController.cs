@@ -81,7 +81,56 @@ namespace BangazonWorkforceManagement.Controllers
                 }
             }
         }
-    
+
+        public ActionResult FilterComputers(string q)
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"
+                            SELECT Make, Manufacturer, PurchaseDate, DecomissionDate FROM Computer
+                            WHERE Make LIKE '%@q%' OR Manufacturer LIKE '%@q%'
+                    ";
+                    cmd.Parameters.Add(new SqlParameter("@q", q));
+                    SqlDataReader reader = cmd.ExecuteReader();
+
+                    List<Computer> computers = new List<Computer>();
+
+                    while (reader.Read())
+                    {
+                        int computerId = reader.GetInt32(reader.GetOrdinal("Id"));
+                        if (!reader.IsDBNull(reader.GetOrdinal("DecomissionDate")))
+                        {
+                            Computer Computer = new Computer
+                            {
+                                Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                                PurchaseDate = reader.GetDateTime(reader.GetOrdinal("Purchasedate")),
+                                DecomissionDate = reader.GetDateTime(reader.GetOrdinal("DecomissionDate")),
+                                Make = reader.GetString(reader.GetOrdinal("Make")),
+                                Manufacturer = reader.GetString(reader.GetOrdinal("Manufacturer")),
+                            };
+                            computers.Add(Computer);
+                        }
+                        else
+                        {
+                            Computer Computer = new Computer
+                            {
+                                Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                                PurchaseDate = reader.GetDateTime(reader.GetOrdinal("Purchasedate")),
+                                Make = reader.GetString(reader.GetOrdinal("Make")),
+                                Manufacturer = reader.GetString(reader.GetOrdinal("Manufacturer")),
+                            };
+                            computers.Add(Computer);
+                        }
+                    }
+
+                    reader.Close();
+                    return View(computers);
+                }
+            }
+        }
 
         // GET: Computers/Details/5
         public ActionResult Details(int id)

@@ -9,6 +9,17 @@
 <p>
     <a asp-action="Create">Create New</a>
 </p>
+
+<form asp-page="/Computers/Index">
+    <div class="form-actions">
+        <p>
+
+            Search By Make or Manufacturer: <input type="text" name="SearchString" value="" />
+            <a asp-controller="Computers" asp-action="FilterComputers" asp-route="1"><input type="submit" value="Search" class="btn btn-default" /></a>
+        </p>
+    </div>
+</form>
+
 <table class="table">
     <thead>
         <tr>
