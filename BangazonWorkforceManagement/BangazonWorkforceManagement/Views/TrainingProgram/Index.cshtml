@@ -57,7 +57,7 @@
                         @Html.DisplayFor(modelItem => item.MaxAttendees)
                     </td>
                     <td>
-                        <button onclick="location.href='@Url.Action("Edit", "TrainingProgram", new { id = item.Id })'">Edit</button>
+                        <button onclick="location.href='@Url.Action("Edit", "TrainingProgram", new { id = item.Id })'">Edit<img src="../../Content/Images/edit-icon-png-0.jpg" alt="New" title="New"></button>
                         @Html.ActionLink("Edit", "Edit", new { id = item.Id }) |
                         @Html.ActionLink("Details", "Details", new { id = item.Id }) |
                         @Html.ActionLink("Delete", "Delete", new { id = item.Id })
