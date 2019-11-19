@@ -9,6 +9,11 @@
         display: flex;
         justify-content: center;
     }
+
+    .th_Names {
+        display: flex;
+        justify-content: center;
+    }
 </style>
 
 <div class="page_Header">
@@ -24,7 +29,7 @@
             <th>
                 @Html.DisplayNameFor(model => model.Id)
             </th>
-            <th>
+            <th class="th_Names">
                 @Html.DisplayNameFor(model => model.Name)
             </th>
             <th>
