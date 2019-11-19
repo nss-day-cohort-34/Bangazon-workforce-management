@@ -91,7 +91,7 @@ namespace BangazonWorkforceManagement.Controllers
         }
 
         // GET: Computers/Create
-        public ActionResult Create()
+        public ActionResult Create()    
         {
             return View();
         }
@@ -154,8 +154,9 @@ namespace BangazonWorkforceManagement.Controllers
 
                 return RedirectToAction(nameof(Index));
             }
-            catch
+            catch (Exception ex)
             {
+                var exception = ex;
                 return View();
             }
         }
