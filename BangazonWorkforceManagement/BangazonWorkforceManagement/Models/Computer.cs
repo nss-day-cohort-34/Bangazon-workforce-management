@@ -35,6 +35,6 @@ namespace BangazonWorkforceManagement.Models
         public DateTime PurchaseDate { get; set; }
 
         [DataType(DataType.Date)]
-        public DateTime? DecomissionDate { get; set; }
+        public DateTime? DecomissionDate  { get; set; }
     }
 }
