@@ -33,8 +33,13 @@
                 <span asp-validation-for="Computer.DecomissionDate" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
+                <label asp-for="SelectedEmployeeId" class="control-label"></label>
+                <select asp-for="SelectedEmployeeId" asp-items="@Model.Employees"></select>
+                <span asp-validation-for="SelectedEmployeeId" class="text-danger"></span>
             </div>
+                <div class="form-group">
+                    <input type="submit" value="Create" class="btn btn-primary" />
+                </div>
         </form>
     </div>
 </div>

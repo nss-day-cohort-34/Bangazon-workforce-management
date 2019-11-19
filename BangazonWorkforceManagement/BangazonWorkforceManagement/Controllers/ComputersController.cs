@@ -6,6 +6,7 @@ using BangazonWorkforceManagement.Models;
 using BangazonWorkforceManagement.Models.ViewModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 
@@ -95,22 +96,40 @@ namespace BangazonWorkforceManagement.Controllers
         // GET: Computers/Create
         public ActionResult Create()
         {
-            var viewModel = new ComputerEmployeeViewModel()
-            {
-                Employees = GetAllEmployees(),
+            var viewModel = new ComputerEmployeeViewModel();
+            //{
+            //    Employees = GetAllEmployees(),
                 
-            };
+                
+                
+            //};
+            var employees = GetAllEmployees();
+            var selectedEmployees = employees
+                .Select(e => new SelectListItem
+                {
+                    Text = $"{e.FirstName} {e.LastName}",
+                    Value = e.Id.ToString()
+                }).ToList();
+
+            selectedEmployees.Insert(0, new SelectListItem
+            {
+                Text = "Choose Employee....",
+                Value = "0"
+            });
+            viewModel.Employees = selectedEmployees;
             return View(viewModel);
         }
 
         // POST: Computers/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(Computer computer)
+        public ActionResult Create(ComputerEmployeeViewModel viewModel)
         {
             try
             {
                 // TODO: Add insert logic here
+                var computer = viewModel.Computer;
+                var selectedEmployeeId = viewModel.SelectedEmployeeId;
                 using (SqlConnection conn = Connection)
                 {
                     conn.Open();
@@ -119,12 +138,24 @@ namespace BangazonWorkforceManagement.Controllers
                         cmd.CommandText = @"INSERT INTO Computer
                                             ( PurchaseDate, Make, Manufacturer )
                                             VALUES
-                                            ( @PurchaseDate, @Make, @Manufacturer )";
+                                            ( @PurchaseDate, @Make, @Manufacturer );
+                                            ";
                         cmd.Parameters.Add(new SqlParameter("@PurchaseDate", computer.PurchaseDate));
 
                         cmd.Parameters.Add(new SqlParameter("@Make", computer.Make));
                         cmd.Parameters.Add(new SqlParameter("@Manufacturer", computer.Manufacturer));
                         cmd.ExecuteNonQuery();
+                        if (selectedEmployeeId != 0)
+                        {
+                            cmd.CommandText = @"INSERT INTO ComputerEmployee
+                                            ( ComputerId, EmployeeId, AssignDate )
+                                            VALUES
+                                            ( @ComputerId, @EmployeeId, GetDate() );
+                                            ";
+                            cmd.Parameters.Add(new SqlParameter("@Make", computer.Make));
+                            cmd.Parameters.Add(new SqlParameter("@Manufacturer", computer.Manufacturer));
+                            cmd.ExecuteNonQuery();
+                        }
                     }
                 }
                     return RedirectToAction(nameof(Index));
