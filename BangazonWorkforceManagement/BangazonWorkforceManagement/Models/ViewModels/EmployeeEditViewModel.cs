@@ -10,36 +10,13 @@ namespace BangazonWorkforceManagement.Models.ViewModels
     {
         public Employee Employee { get; set; }
 
-        public Computer Computer { get; set;}
+        public int ComputerId { get; set; }
 
         public int SelectedComputerId { get; set; }
 
-        public List<Department> Departments { get; set; } = new List<Department>();
+        public List<SelectListItem> Departments { get; set; }
 
-        public List<Computer> Computers { get; set; } = new List<Computer>();
+        public List<SelectListItem> Computers { get; set; }
 
-        public List<SelectListItem> DepartmentOptions
-        {
-            get
-            {
-                if (Departments == null) return null;
-
-                return Departments
-                    .Select(d => new SelectListItem(d.Name, d.Id.ToString()))
-                    .ToList();
-            }
-        }
-
-        public List<SelectListItem> ComputerOptions
-        {
-            get
-            {
-                if (Computers == null) return null;
-
-                return Computers
-                    .Select(c => new SelectListItem(c.ComputerInfo, c.Id.ToString()))
-                    .ToList();
-            }
-        }
     }
 }
