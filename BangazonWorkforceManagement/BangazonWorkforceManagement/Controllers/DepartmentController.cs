@@ -125,25 +125,41 @@ namespace BangazonWorkforceManagement.Controllers
             }
         }
 
-            // GET: Department/Edit/5
-            public ActionResult Edit(int id)
+        // GET: TrainingProgram/Edit/5
+        public ActionResult Edit(int id)
         {
-            return View();
+            var department = GetDepartmentById(id);
+            return View(department);
         }
 
-        // POST: Department/Edit/5
+        // POST: TrainingProgram/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
+        public ActionResult Edit(int id, Department department)
         {
             try
             {
-                // TODO: Add update logic here
+                using (SqlConnection conn = Connection)
+                {
+                    conn.Open();
+                    using (SqlCommand cmd = conn.CreateCommand())
+                    {
+                        cmd.CommandText = cmd.CommandText = @"Update Department 
+                                                              SET Name = @name, 
+                                                              Budget = @budget
+                                                              WHERE id = @id";
+                        cmd.Parameters.Add(new SqlParameter("@name", department.Name));
+                        cmd.Parameters.Add(new SqlParameter("@budget", department.Budget));
+                        cmd.Parameters.Add(new SqlParameter("@id", id));
 
+                        cmd.ExecuteNonQuery();
+                    }
+                }
                 return RedirectToAction(nameof(Index));
             }
             catch
             {
+               
                 return View();
             }
         }
