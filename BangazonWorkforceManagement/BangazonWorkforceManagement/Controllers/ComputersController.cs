@@ -232,45 +232,7 @@ namespace BangazonWorkforceManagement.Controllers
         }
 
 
-        /*
-        private Computer GetComputerById(int id)
-        {
-            using (SqlConnection conn = Connection)
-            {
-                conn.Open();
-                using (SqlCommand cmd = conn.CreateCommand())
-                {
-                    cmd.CommandText = @"
-                        SELECT c.Id,
-                            c.PurchaseDate,
-                            c.DecomissionDate,
-                            c.Make,
-                            c.Manufacturer
-                        FROM Computer c
-                        WHERE Id = @Id";
-                    cmd.Parameters.Add(new SqlParameter("@Id", id));
-                    SqlDataReader reader = cmd.ExecuteReader();
-
-                    Computer computer = null;
-                    if(reader.Read()) 
-                    // (!reader.IsDBNull(reader.GetOrdinal("DecomissionDate")))---moved to ternary
-                    {
-                        computer = new Computer
-                        {
-                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
-                            PurchaseDate = reader.GetDateTime(reader.GetOrdinal("PurchaseDate")),
-                            // trying ternary below  20191118  2025
-                            DecomissionDate = reader.IsDBNull(reader.GetOrdinal("DecomissionDate")) ? DateTime.MinValue : reader.GetDateTime(reader.GetOrdinal("DecomissionDate")),
-                            // trying ternary above
-                            Make = reader.GetString(reader.GetOrdinal("Make")),
-                            Manufacturer = reader.GetString(reader.GetOrdinal("Manufacturer"))
-                        };
-                    }
-                    reader.Close();
-                    return computer;
-                }
-            }
-        }*/
+        
 
         private Computer GetComputerById(int id)
         {
@@ -379,6 +341,7 @@ namespace BangazonWorkforceManagement.Controllers
             }
         }
 
+        
 
 
     }
