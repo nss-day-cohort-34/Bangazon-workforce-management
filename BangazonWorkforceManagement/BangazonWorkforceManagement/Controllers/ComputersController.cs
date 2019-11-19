@@ -30,14 +30,16 @@ namespace BangazonWorkforceManagement.Controllers
         }
 
         // GET: Computers
-        public ActionResult Index()
+        public ActionResult Index(string q)
         {
             using (SqlConnection conn = Connection)
             {
                 conn.Open();
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = @"
+                    if (q == null)
+                    {
+                        cmd.CommandText = @"
                      SELECT c.Id,
                         c.PurchaseDate,
                         c.DecomissionDate,
@@ -47,6 +49,18 @@ namespace BangazonWorkforceManagement.Controllers
 
                     ORDER BY c.Make, c.Manufacturer;
                     ";
+                    }
+                    else
+                    {
+                        cmd.CommandText = @"
+                            SELECT Id, Make, Manufacturer, PurchaseDate, DecomissionDate FROM Computer
+                            WHERE Make LIKE '%' + @q + '%' OR Manufacturer LIKE '%' + @q + '%'
+                            ORDER BY Make, Manufacturer
+                    ";
+                        cmd.Parameters.Add(new SqlParameter("@q", q));
+
+                    }
+
                     SqlDataReader reader = cmd.ExecuteReader();
 
                     List<Computer> computers = new List<Computer>();
@@ -81,10 +95,11 @@ namespace BangazonWorkforceManagement.Controllers
 
                     reader.Close();
                     return View(computers);
+
+
                 }
             }
         }
-    
 
         // GET: Computers/Details/5
         public ActionResult Details(int id)
@@ -186,19 +201,39 @@ namespace BangazonWorkforceManagement.Controllers
                     conn.Open();
                     using (SqlCommand cmd = conn.CreateCommand())
                     {
-                        cmd.CommandText = @"UPDATE Computer
+                        if (computer.DecomissionDate != null)
+                        {
+                            cmd.CommandText = @"UPDATE Computer
                                                 SET PurchaseDate = @PurchaseDate,
                                                     DecomissionDate = @DecomissionDate,
                                                     Make = @Make,
                                                     Manufacturer = @Manufacturer
                                                 WHERE Id = @id";
-                        cmd.Parameters.Add(new SqlParameter("@PurchaseDate", computer.PurchaseDate));
-                        cmd.Parameters.Add(new SqlParameter("@DecomissionDate", computer.DecomissionDate));
-                        cmd.Parameters.Add(new SqlParameter("@id", computer.Id));
-                        cmd.Parameters.Add(new SqlParameter("@Make", computer.Make));
-                        cmd.Parameters.Add(new SqlParameter("@Manufacturer", computer.Manufacturer));
 
-                        cmd.ExecuteNonQuery();
+                            cmd.Parameters.Add(new SqlParameter("@PurchaseDate", computer.PurchaseDate));
+                            cmd.Parameters.Add(new SqlParameter("@DecomissionDate", computer.DecomissionDate));
+                            cmd.Parameters.Add(new SqlParameter("@id", computer.Id));
+                            cmd.Parameters.Add(new SqlParameter("@Make", computer.Make));
+                            cmd.Parameters.Add(new SqlParameter("@Manufacturer", computer.Manufacturer));
+
+                            cmd.ExecuteNonQuery();
+                        }
+                        else
+                        {
+                            cmd.CommandText = @"UPDATE Computer
+                                                SET PurchaseDate = @PurchaseDate,
+                                                    
+                                                    Make = @Make,
+                                                    Manufacturer = @Manufacturer
+                                                WHERE Id = @id";
+
+                            cmd.Parameters.Add(new SqlParameter("@PurchaseDate", computer.PurchaseDate));
+                            cmd.Parameters.Add(new SqlParameter("@id", computer.Id));
+                            cmd.Parameters.Add(new SqlParameter("@Make", computer.Make));
+                            cmd.Parameters.Add(new SqlParameter("@Manufacturer", computer.Manufacturer));
+
+                            cmd.ExecuteNonQuery();
+                        }
                     }
                 }
 
