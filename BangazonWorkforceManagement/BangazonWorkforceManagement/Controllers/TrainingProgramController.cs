@@ -70,6 +70,56 @@ namespace BangazonWorkforceManagement.Controllers
             }
         }
 
+        // GET: TrainingProgram
+        public ActionResult ViewPast()
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"
+                                        SELECT t.Id,
+                                        t.Name,
+                                        t.StartDate,
+                                        t.EndDate,
+                                        t.MaxAttendees
+                                    FROM TrainingProgram t
+									WHERE t.StartDate < GETDATE();
+                                    ";
+                    SqlDataReader reader = cmd.ExecuteReader();
+
+                    List<TrainingProgram> trainingPrograms = new List<TrainingProgram>();
+                    while (reader.Read())
+                    {
+                        TrainingProgram trainingProgram = new TrainingProgram
+                        {
+                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                            Name = reader.GetString(reader.GetOrdinal("Name")),
+                            StartDate = reader.GetDateTime(reader.GetOrdinal("StartDate")),
+                            EndDate = reader.GetDateTime(reader.GetOrdinal("EndDate")),
+                            MaxAttendees = reader.GetInt32(reader.GetOrdinal("MaxAttendees"))
+                        };
+
+                        trainingPrograms.Add(trainingProgram);
+                    }
+
+                    reader.Close();
+
+                    return View(trainingPrograms);
+                }
+            }
+        }
+
+        public ActionResult ViewPastDetails(int id)
+
+            {
+                var trainingProgram = GetTrainingProgramById(id);
+                trainingProgram.CurrentAttendees = GetTrainingProgramCurrentAttendeesById(id);
+                return View(trainingProgram);
+            }
+            
+
         // GET: TrainingProgram/Details/5
         public ActionResult Details(int id)
         {
