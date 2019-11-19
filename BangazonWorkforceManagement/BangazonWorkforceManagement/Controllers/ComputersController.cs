@@ -28,14 +28,16 @@ namespace BangazonWorkforceManagement.Controllers
         }
 
         // GET: Computers
-        public ActionResult Index()
+        public ActionResult Index(string q)
         {
             using (SqlConnection conn = Connection)
             {
                 conn.Open();
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = @"
+                    if (q == null)
+                    {
+                        cmd.CommandText = @"
                      SELECT c.Id,
                         c.PurchaseDate,
                         c.DecomissionDate,
@@ -44,56 +46,18 @@ namespace BangazonWorkforceManagement.Controllers
                     FROM Computer c
                     ORDER BY c.Make, c.Manufacturer;
                     ";
-                    SqlDataReader reader = cmd.ExecuteReader();
-
-                    List<Computer> computers = new List<Computer>();
-
-                    while (reader.Read())
+                    }
+                    else
                     {
-                        int computerId = reader.GetInt32(reader.GetOrdinal("Id"));
-                        if (!reader.IsDBNull(reader.GetOrdinal("DecomissionDate")))
-                        {
-                            Computer Computer = new Computer
-                            {
-                                Id = reader.GetInt32(reader.GetOrdinal("Id")),
-                                PurchaseDate = reader.GetDateTime(reader.GetOrdinal("Purchasedate")),
-                                DecomissionDate = reader.GetDateTime(reader.GetOrdinal("DecomissionDate")),
-                                Make = reader.GetString(reader.GetOrdinal("Make")),
-                                Manufacturer = reader.GetString(reader.GetOrdinal("Manufacturer")),
-                            };
-                            computers.Add(Computer);
-                        }
-                        else
-                        {
-                            Computer Computer = new Computer
-                            {
-                                Id = reader.GetInt32(reader.GetOrdinal("Id")),
-                                PurchaseDate = reader.GetDateTime(reader.GetOrdinal("Purchasedate")),
-                                Make = reader.GetString(reader.GetOrdinal("Make")),
-                                Manufacturer = reader.GetString(reader.GetOrdinal("Manufacturer")),
-                            };
-                            computers.Add(Computer);
-                        }
+                        cmd.CommandText = @"
+                            SELECT Id, Make, Manufacturer, PurchaseDate, DecomissionDate FROM Computer
+                            WHERE Make LIKE '%' + @q + '%' OR Manufacturer LIKE '%' + @q + '%'
+                            ORDER BY Make, Manufacturer
+                    ";
+                        cmd.Parameters.Add(new SqlParameter("@q", q));
+
                     }
 
-                    reader.Close();
-                    return View(computers);
-                }
-            }
-        }
-
-        public ActionResult FilterComputers(string q)
-        {
-            using (SqlConnection conn = Connection)
-            {
-                conn.Open();
-                using (SqlCommand cmd = conn.CreateCommand())
-                {
-                    cmd.CommandText = @"
-                            SELECT Make, Manufacturer, PurchaseDate, DecomissionDate FROM Computer
-                            WHERE Make LIKE '%@q%' OR Manufacturer LIKE '%@q%'
-                    ";
-                    cmd.Parameters.Add(new SqlParameter("@q", q));
                     SqlDataReader reader = cmd.ExecuteReader();
 
                     List<Computer> computers = new List<Computer>();
