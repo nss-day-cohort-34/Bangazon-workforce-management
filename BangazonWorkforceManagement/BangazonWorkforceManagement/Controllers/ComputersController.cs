@@ -92,6 +92,8 @@ namespace BangazonWorkforceManagement.Controllers
 
                     reader.Close();
                     return View(computers);
+
+
                 }
             }
         }
