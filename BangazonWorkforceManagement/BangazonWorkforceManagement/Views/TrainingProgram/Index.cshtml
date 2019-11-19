@@ -10,24 +10,21 @@
         justify-content: center;
     }
 
-    .th_Names {
-        display: flex;
-        justify-content: center;
-    }
+  
 </style>
 
 <div class="page_Header">
     <h1>Training Programs</h1>
 </div>
 <p>
-    <a asp-action="Create">Create New</a> |
+    <a asp-action="Create">Create New</a> 
 
 </p>
 <table class="table">
     <thead>
         <tr>
             
-            <th class="th_Names">
+            <th>
                 @Html.DisplayNameFor(model => model.Name)
             </th>
             <th>

@@ -9,6 +9,10 @@
         display: flex;
         justify-content: center;
     }
+
+    .search_bar {
+    margin: 15px;
+    }
 </style>
 
 <div class="page_Header">
@@ -17,12 +21,13 @@
 <p>
     <a asp-action="Create">Create New</a>
 </p>
-
+            <div class="search_bar">
             <form asp-controller="Computers" asp-action="Index" method="get">
                 <input name="q" id="Search" />
                 <input type="submit" value="Submit" />
                 <a asp-action="Index"></a>
             </form>
+                </div>
 
 <table class="table">
     <thead>
