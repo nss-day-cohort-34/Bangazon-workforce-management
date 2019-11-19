@@ -110,20 +110,21 @@ namespace BangazonWorkforceManagement.Controllers
                     using (SqlCommand cmd = conn.CreateCommand())
                     {
                         cmd.CommandText = @"INSERT INTO Computer
-                                            ( PurchaseDate, DecomissionDate, Make, Manufacturer )
+                                            ( PurchaseDate, Make, Manufacturer )
                                             VALUES
-                                            ( @PurchaseDate, @DecomissionDate, @Make, @Manufacturer )";
+                                            ( @PurchaseDate, @Make, @Manufacturer )";
                         cmd.Parameters.Add(new SqlParameter("@PurchaseDate", computer.PurchaseDate));
-                        cmd.Parameters.Add(new SqlParameter("@lastName", computer.DecomissionDate));
-                        cmd.Parameters.Add(new SqlParameter("@slackHandle", computer.Make));
-                        cmd.Parameters.Add(new SqlParameter("@cohortId", computer.Manufacturer));
+                        
+                        cmd.Parameters.Add(new SqlParameter("@Make", computer.Make));
+                        cmd.Parameters.Add(new SqlParameter("@Manufacturer", computer.Manufacturer));
                         cmd.ExecuteNonQuery();
                     }
                     return RedirectToAction(nameof(Index));
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                var exception = ex;
                 return View();
             }
         }

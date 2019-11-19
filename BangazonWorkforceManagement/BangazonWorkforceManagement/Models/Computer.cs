@@ -31,6 +31,7 @@ namespace BangazonWorkforceManagement.Models
         }
 
         [Required]
+        [DataType(DataType.Date)]
         public DateTime PurchaseDate { get; set; }
 
         [DataType(DataType.Date)]
