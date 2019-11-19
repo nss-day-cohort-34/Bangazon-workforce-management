@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using BangazonWorkforceManagement.Models;
+using BangazonWorkforceManagement.Models.ViewModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
@@ -42,6 +43,7 @@ namespace BangazonWorkforceManagement.Controllers
                         c.Make,
                         c.Manufacturer
                     FROM Computer c
+
                     ORDER BY c.Make, c.Manufacturer;
                     ";
                     SqlDataReader reader = cmd.ExecuteReader();
@@ -93,7 +95,12 @@ namespace BangazonWorkforceManagement.Controllers
         // GET: Computers/Create
         public ActionResult Create()
         {
-            return View();
+            var viewModel = new ComputerEmployeeViewModel()
+            {
+                Employees = GetAllEmployees(),
+                
+            };
+            return View(viewModel);
         }
 
         // POST: Computers/Create
@@ -320,6 +327,48 @@ namespace BangazonWorkforceManagement.Controllers
                 }
             }
         }
+
+        private List<Employee> GetAllEmployees()
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"
+             SELECT e.Id,
+                e.FirstName,
+                e.LastName,
+                e.DepartmentId,
+                e.IsSuperVisor
+            FROM Employee e
+            ORDER BY e.LastName, e.FirstName;
+        ";
+                    SqlDataReader reader = cmd.ExecuteReader();
+
+                    List<Employee> employees = new List<Employee>();
+                    while (reader.Read())
+                    {
+                        Employee employee = new Employee
+                        {
+                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                            FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
+                            LastName = reader.GetString(reader.GetOrdinal("LastName")),
+                            DepartmentId = reader.GetInt32(reader.GetOrdinal("DepartmentId")),
+                            IsSupervisor = reader.GetBoolean(reader.GetOrdinal("IsSupervisor"))
+                        };
+
+                        employees.Add(employee);
+                    }
+
+                    reader.Close();
+
+                    return employees;
+                }
+            }
+        }
+
+
 
 
 
