@@ -6,8 +6,9 @@
 <h1>EmployeeTrainingReport</h1>
 
 <div class="row">
-    <label for="department-select">Department</label>
-    <select id="department-select" asp-items="@Model.DepartmentOptions"></select>
+    <label for="department-select">Department:  </label>
+    
+    <select class="select" id="department-select" asp-items="@Model.DepartmentOptions"></select>
 </div>
 <div class="row">
     <canvas id="output"></canvas>
@@ -46,6 +47,8 @@
                         data: {
                             labels: employees.map(e => `${e.firstName} ${e.lastName}`),
                             datasets: [{
+                                borderColor: 'rgb(145, 250, 238)',
+                                backgroundColor: 'rgb(145, 250, 238)',
                                 label: "Training Program Count",
                                 data: employees.map(e => e.trainingProgramCount)
                             }]
