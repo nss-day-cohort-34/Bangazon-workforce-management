@@ -44,7 +44,7 @@ namespace BangazonWorkforceManagement.Controllers
                                         t.EndDate,
                                         t.MaxAttendees
                                     FROM TrainingProgram t
-									WHERE t.StartDate > GETDATE();
+									WHERE t.EndDate > GETDATE();
                                     ";
                     SqlDataReader reader = cmd.ExecuteReader();
 
@@ -85,7 +85,7 @@ namespace BangazonWorkforceManagement.Controllers
                                         t.EndDate,
                                         t.MaxAttendees
                                     FROM TrainingProgram t
-									WHERE t.StartDate < GETDATE();
+									WHERE t.EndDate < GETDATE();
                                     ";
                     SqlDataReader reader = cmd.ExecuteReader();
 

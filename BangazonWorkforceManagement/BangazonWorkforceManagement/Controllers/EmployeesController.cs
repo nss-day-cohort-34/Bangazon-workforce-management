@@ -226,14 +226,16 @@ namespace BangazonWorkforceManagement.Controllers
                             cmd.Parameters.Add(new SqlParameter("@id", id));
                             cmd.ExecuteNonQuery();
 
-
-                            cmd.CommandText = @"
+                            if (updatedComputerId != 0)
+                            {
+                                cmd.CommandText = @"
                     INSERT INTO ComputerEmployee (ComputerId, EmployeeId, AssignDate)
                     VALUES (@computerId, @employeeId, GetDate());
                     ";
-                            cmd.Parameters.Add(new SqlParameter("@computerId", model.SelectedComputerId));
-                            cmd.Parameters.Add(new SqlParameter("@employeeId", id));
-                            cmd.ExecuteNonQuery();
+                                cmd.Parameters.Add(new SqlParameter("@computerId", model.SelectedComputerId));
+                                cmd.Parameters.Add(new SqlParameter("@employeeId", id));
+                                cmd.ExecuteNonQuery();
+                            }
                         }
                         else
                         {
