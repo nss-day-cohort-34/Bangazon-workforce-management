@@ -106,7 +106,7 @@ namespace BangazonWorkforceManagement.Controllers
         }
 
         // GET: Computers/Create
-        public ActionResult Create()
+        public ActionResult Create()    
         {
             return View();
         }
@@ -114,16 +114,32 @@ namespace BangazonWorkforceManagement.Controllers
         // POST: Computers/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(IFormCollection collection)
+        public ActionResult Create(Computer computer)
         {
             try
             {
                 // TODO: Add insert logic here
-
-                return RedirectToAction(nameof(Index));
+                using (SqlConnection conn = Connection)
+                {
+                    conn.Open();
+                    using (SqlCommand cmd = conn.CreateCommand())
+                    {
+                        cmd.CommandText = @"INSERT INTO Computer
+                                            ( PurchaseDate, Make, Manufacturer )
+                                            VALUES
+                                            ( @PurchaseDate, @Make, @Manufacturer )";
+                        cmd.Parameters.Add(new SqlParameter("@PurchaseDate", computer.PurchaseDate));
+                        
+                        cmd.Parameters.Add(new SqlParameter("@Make", computer.Make));
+                        cmd.Parameters.Add(new SqlParameter("@Manufacturer", computer.Manufacturer));
+                        cmd.ExecuteNonQuery();
+                    }
+                    return RedirectToAction(nameof(Index));
+                }
             }
-            catch
+            catch (Exception ex)
             {
+                var exception = ex;
                 return View();
             }
         }
@@ -148,12 +164,15 @@ namespace BangazonWorkforceManagement.Controllers
                     conn.Open();
                     using (SqlCommand cmd = conn.CreateCommand())
                     {
+                      
+                        
                         cmd.CommandText = @"UPDATE Computer
-                                                SET PurchaseDate = @PurchaseDate,
-                                                    DecomissionDate = @DecomissionDate,
-                                                    Make = @Make,
-                                                    Manufacturer = @Manufacturer
-                                                WHERE Id = @id";
+                                            SET PurchaseDate = @PurchaseDate,
+                                                DecomissionDate = @DecomissionDate,
+                                                Make = @Make,
+                                                Manufacturer = @Manufacturer
+                                            WHERE Id = @id";
+
                         cmd.Parameters.Add(new SqlParameter("@PurchaseDate", computer.PurchaseDate));
                         cmd.Parameters.Add(new SqlParameter("@DecomissionDate", computer.DecomissionDate));
                         cmd.Parameters.Add(new SqlParameter("@id", computer.Id));
@@ -166,8 +185,9 @@ namespace BangazonWorkforceManagement.Controllers
 
                 return RedirectToAction(nameof(Index));
             }
-            catch
+            catch (Exception ex)
             {
+                var exception = ex;
                 return View();
             }
         }
@@ -203,6 +223,7 @@ namespace BangazonWorkforceManagement.Controllers
                             //in this condition the ComputerId was found in the table 
                             //which means there has been a relationship
                             reader.Close();
+                           
                             return Ok("This computer has had a previous relationship with an employee and cannot be deleted. " +
                                 "This needs a different view");
 
@@ -225,6 +246,7 @@ namespace BangazonWorkforceManagement.Controllers
             }
         }
 
+
         private Computer GetComputerById(int id)
         {
             using (SqlConnection conn = Connection)
@@ -244,41 +266,27 @@ namespace BangazonWorkforceManagement.Controllers
                     SqlDataReader reader = cmd.ExecuteReader();
 
                     Computer computer = null;
-                    while (reader.Read())
+                    if(reader.Read()) 
+                    // (!reader.IsDBNull(reader.GetOrdinal("DecomissionDate")))---moved to ternary
                     {
-                       
-                        int computerId = reader.GetInt32(reader.GetOrdinal("Id"));
-
-                        if (!reader.IsDBNull(reader.GetOrdinal("DecomissionDate")))
+                        computer = new Computer
                         {
-                            Computer Computer = new Computer
-                            {
-                                Id = reader.GetInt32(reader.GetOrdinal("Id")),
-                                PurchaseDate = reader.GetDateTime(reader.GetOrdinal("PurchaseDate")),
-                                DecomissionDate = reader.GetDateTime(reader.GetOrdinal("DecomissionDate")),
-                                Make = reader.GetString(reader.GetOrdinal("Make")),
-                                Manufacturer = reader.GetString(reader.GetOrdinal("Manufacturer"))
-                            };
-                            computer = Computer;
-                        } else
-                        {
-                            Computer Computer = new Computer
-                            {
-                                Id = reader.GetInt32(reader.GetOrdinal("Id")),
-                                PurchaseDate = reader.GetDateTime(reader.GetOrdinal("PurchaseDate")),
-                                Make = reader.GetString(reader.GetOrdinal("Make")),
-                                Manufacturer = reader.GetString(reader.GetOrdinal("Manufacturer"))
-                            };
-                            computer = Computer;
-                        }
+                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                            PurchaseDate = reader.GetDateTime(reader.GetOrdinal("PurchaseDate")),
+                            // trying ternary below  20191118  2025
+                            DecomissionDate = reader.IsDBNull(reader.GetOrdinal("DecomissionDate")) ? DateTime.MinValue : reader.GetDateTime(reader.GetOrdinal("DecomissionDate")),
+                            // trying ternary above
+                            Make = reader.GetString(reader.GetOrdinal("Make")),
+                            Manufacturer = reader.GetString(reader.GetOrdinal("Manufacturer"))
+                        };
                     }
-
                     reader.Close();
-
                     return computer;
                 }
             }
         }
+
+
 
         private Computer GetComputerByIdForDelete(int id)
         {
@@ -299,7 +307,6 @@ namespace BangazonWorkforceManagement.Controllers
                     SqlDataReader reader = cmd.ExecuteReader();
 
                     Computer computer = null;
-                    //List<Computer> computers = new List<Computer>();
                     while (reader.Read())
                     {
                         int computerId = reader.GetInt32(reader.GetOrdinal("Id"));
@@ -314,7 +321,6 @@ namespace BangazonWorkforceManagement.Controllers
                                 Manufacturer = reader.GetString(reader.GetOrdinal("Manufacturer")),
                             };
                             computer = Computer;
-                            //computers.Add(Computer);
                         }
                         else
                         {
@@ -325,7 +331,6 @@ namespace BangazonWorkforceManagement.Controllers
                                 Make = reader.GetString(reader.GetOrdinal("Make")),
                                 Manufacturer = reader.GetString(reader.GetOrdinal("Manufacturer")),
                             };
-                            //computers.Add(Computer);
                             computer = Computer;
                         }
                     }

@@ -140,12 +140,41 @@ namespace BangazonWorkforceManagement.Controllers
             var viewModel = new EmployeeEditViewModel()
             {
                 Employee = GetEmployeeById(id),
-                SelectedComputerId = GetAssignedComputerByEmployeeId(id).Id,
-                Departments = GetAllDepartments(),
-                Computers = GetAvailableComputersByEmployeeId(id)
+                ComputerId = GetAssignedComputerByEmployeeId(id).Id,
+                SelectedComputerId = GetComputerEmployeeByEmployeeId(id).ComputerId
             };
+            
+            var computers = GetAvailableComputersByEmployeeId(id);
+            var selectComputers = computers
+            .Select(c => new SelectListItem
+            {
+                Text = c.ComputerInfo,
+                Value = c.Id.ToString()
+            }).ToList();
 
-            //BUG : when this runs, viewModel info gets properly populated (see next comment)
+            selectComputers.Insert(0, new SelectListItem
+            {
+                Text = "Choose computer...",
+                Value = "0"
+            });
+
+            var departments = GetAllDepartments();
+            var selectDepartments = departments
+            .Select(d => new SelectListItem
+            {
+                Text = d.Name,
+                Value = d.Id.ToString()
+            }).ToList();
+
+            selectDepartments.Insert(0, new SelectListItem
+            {
+                Text = "Choose computer...",
+                Value = "0"
+            });
+
+            viewModel.Computers = selectComputers;
+            viewModel.Departments = selectDepartments;
+
             return View(viewModel);
         }
 
@@ -154,64 +183,91 @@ namespace BangazonWorkforceManagement.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Edit(int id, EmployeeEditViewModel model)
         {
-            //BUG: but here, much of the info is missing (ie, EmployeeId)
-
+           
             try
             {
+              
               Employee updatedEmployee = model.Employee;
+                int updatedComputerId = model.SelectedComputerId;
+                int currentComputerId = model.ComputerId;
 
-              using (SqlConnection conn = Connection)
+
+                using (SqlConnection conn = Connection)
                 {
+
                     conn.Open();
                     using (SqlCommand cmd = conn.CreateCommand())
                     {
-                        cmd.CommandText = @"
-                    UPDATE ComputerEmployee 
-                    SET 
-                    ComputerId = ComputerId,
-                    EmployeeId = @id,
-                    AssignDate = AssignDate,
-                    UnassignDate = GetDate()
-                    WHERE EmployeeId = @id;
-                
-                    UPDATE Employee 
-                    SET
-                    FirstName = @firstName,
-                    LastName = @lastName,
-                    DepartmentId = @departmentId,
-                    IsSupervisor = @isSupervisor
-                    WHERE Id = @id;";
 
-                        cmd.Parameters.Add(new SqlParameter("@firstName", updatedEmployee.FirstName));
-                        cmd.Parameters.Add(new SqlParameter("@lastName", updatedEmployee.LastName));
-                        cmd.Parameters.Add(new SqlParameter("@departmentId", updatedEmployee.DepartmentId));
-                        cmd.Parameters.Add(new SqlParameter("@isSupervisor", updatedEmployee.IsSupervisor));
-                        cmd.Parameters.Add(new SqlParameter("@id", id));
-                        cmd.ExecuteNonQuery();
+                        if (updatedComputerId != currentComputerId)
+                        {
+                            cmd.CommandText = @"
+                                UPDATE ComputerEmployee 
+                                SET 
+                                ComputerId = ComputerId,
+                                EmployeeId = @id,
+                                AssignDate = AssignDate,
+                                UnassignDate = GetDate()
+                                WHERE EmployeeId = @id AND UnassignDate IS NULL;
 
-                        cmd.CommandText = @"
+                                UPDATE Employee 
+                                SET
+                                FirstName = @firstName,
+                                LastName = @lastName,
+                                DepartmentId = @departmentId,
+                                IsSupervisor = @isSupervisor
+                                WHERE Id = @id;";
+
+
+                            cmd.Parameters.Add(new SqlParameter("@firstName", updatedEmployee.FirstName));
+                            cmd.Parameters.Add(new SqlParameter("@lastName", updatedEmployee.LastName));
+                            cmd.Parameters.Add(new SqlParameter("@departmentId", updatedEmployee.DepartmentId));
+                            cmd.Parameters.Add(new SqlParameter("@isSupervisor", updatedEmployee.IsSupervisor));
+                            cmd.Parameters.Add(new SqlParameter("@id", id));
+                            cmd.ExecuteNonQuery();
+
+
+                            cmd.CommandText = @"
                     INSERT INTO ComputerEmployee (ComputerId, EmployeeId, AssignDate)
                     VALUES (@computerId, @employeeId, GetDate());
                     ";
-                        cmd.Parameters.Add(new SqlParameter("@computerId", model.SelectedComputerId));
-                        cmd.Parameters.Add(new SqlParameter("@employeeId", id));
-                        cmd.ExecuteNonQuery();
+                            cmd.Parameters.Add(new SqlParameter("@computerId", model.SelectedComputerId));
+                            cmd.Parameters.Add(new SqlParameter("@employeeId", id));
+                            cmd.ExecuteNonQuery();
+                        }
+                        else
+                        {
+                            cmd.CommandText = @"
+                               
+
+                                UPDATE Employee 
+                                SET
+                                FirstName = @firstName,
+                                LastName = @lastName,
+                                DepartmentId = @departmentId,
+                                IsSupervisor = @isSupervisor
+                                WHERE Id = @id;";
+
+
+                            cmd.Parameters.Add(new SqlParameter("@firstName", updatedEmployee.FirstName));
+                            cmd.Parameters.Add(new SqlParameter("@lastName", updatedEmployee.LastName));
+                            cmd.Parameters.Add(new SqlParameter("@departmentId", updatedEmployee.DepartmentId));
+                            cmd.Parameters.Add(new SqlParameter("@isSupervisor", updatedEmployee.IsSupervisor));
+                            cmd.Parameters.Add(new SqlParameter("@id", id));
+                            cmd.ExecuteNonQuery();
+
+
+                        }
                     }
                 }
+                
                 return RedirectToAction(nameof(Index));
 
             }
-            catch
+            catch(Exception ex) 
             {
 
-                model = new EmployeeEditViewModel()
-                {
-                    Employee = model.Employee,
-                    Computer = model.Employee.Computer,
-                    Departments = GetAllDepartments(),
-                    Computers = GetAvailableComputersByEmployeeId(id),
-                };
-
+                var exception = ex;
                 return View(model);
 
             }
@@ -292,8 +348,8 @@ namespace BangazonWorkforceManagement.Controllers
                         e.LastName,
                         e.DepartmentId,
                         e.IsSupervisor,
-                        d.Name AS DepartmentName
-                        FROM Employee e LEFT JOIN Department d ON d.Id = e.DepartmentId
+                        d.Name AS DepartmentName       
+                        FROM Employee e LEFT JOIN Department d ON d.Id = e.DepartmentId                        
                         WHERE e.Id = @employeeId";
                     cmd.Parameters.Add(new SqlParameter("@employeeId", id));
                     SqlDataReader reader = cmd.ExecuteReader();
@@ -414,6 +470,48 @@ private List<TrainingProgram> GetTrainingProgramsByEmployeeId(int id)
                     reader.Close();
 
                     return trainingPrograms;
+                }
+            }
+        }
+
+        private ComputerEmployee GetComputerEmployeeByEmployeeId(int id)
+        {
+            {
+                using (SqlConnection conn = Connection)
+                {
+                    conn.Open();
+                    using (SqlCommand cmd = conn.CreateCommand())
+                    {
+
+                        cmd.CommandText = @"SELECT ce.Id, ce.ComputerId, ce.EmployeeId, ce.AssignDate
+                                        
+                                        FROM ComputerEmployee ce 
+                                        WHERE ce.EmployeeId = @id AND ce.UnassignDate IS NULL
+                                        ";
+                        cmd.Parameters.Add(new SqlParameter("@id", id));
+                        var reader = cmd.ExecuteReader();
+
+                        ComputerEmployee computerEmployee = new ComputerEmployee();
+                        if (reader.Read())
+                        {
+                            if (!reader.IsDBNull(reader.GetOrdinal("EmployeeId")))
+                            {
+                                computerEmployee = new ComputerEmployee()
+                                {
+
+                                    Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                                    EmployeeId = reader.GetInt32(reader.GetOrdinal("EmployeeId")),
+                                    ComputerId = reader.GetInt32(reader.GetOrdinal("ComputerId")),
+                                    AssignDate = reader.GetDateTime(reader.GetOrdinal("AssignDate"))
+
+                                };
+
+                            }
+                        }
+                        reader.Close();
+
+                        return computerEmployee;
+                    }
                 }
             }
         }
