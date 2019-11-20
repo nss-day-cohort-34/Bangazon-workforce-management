@@ -12,7 +12,7 @@
     <div class="col-md-4">
         <form asp-action="Edit">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-           
+
             <div class="form-group">
                 <label asp-for="Employee.FirstName" class="control-label"></label>
                 <input asp-for="Employee.FirstName" class="form-control" />
@@ -25,7 +25,7 @@
             </div>
             <div class="form-group">
                 <label asp-for="Employee.DepartmentId" class="control-label"></label>
-                <select asp-for="Employee.DepartmentId" asp-items="@Model.DepartmentOptions"></select>
+                <select asp-for="Employee.DepartmentId" asp-items="@Model.Departments"></select>
                 <span asp-validation-for="Employee.DepartmentId" class="text-danger"></span>
             </div>
             <div class="form-group form-check">
@@ -35,8 +35,11 @@
             </div>
             <div class="form-group">
                 <label asp-for="SelectedComputerId" class="control-label"></label>
-                <select asp-for="SelectedComputerId" asp-items="@Model.ComputerOptions"></select>
+                <select  asp-for="SelectedComputerId" asp-items="@Model.Computers"></select>
                 <span asp-validation-for="SelectedComputerId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                 @Html.HiddenFor(m => m.ComputerId)    
             </div>
             <div class="form-group">
                 <input type="submit" value="Save" class="btn btn-primary" />
