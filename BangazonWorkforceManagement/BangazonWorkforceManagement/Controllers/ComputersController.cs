@@ -413,7 +413,7 @@ namespace BangazonWorkforceManagement.Controllers
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
                     cmd.CommandText = @"
-             	SELECT e.Id, e.FirstName, e.LastName
+             	SELECT DISTINCT e.Id, e.FirstName, e.LastName
                     FROM Employee e LEFT JOIN ComputerEmployee ce ON ce.EmployeeId = e.Id
                     GROUP BY e.Id, e.FirstName, e.LastName, ce.UnassignDate, ce.EmployeeId
                     HAVING Count(ce.EmployeeId) = 0
